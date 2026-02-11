@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h4 class="mb-3">{{ "Editar Material" if mat else "Novo Material" }}</h4>
+
+<form method="post" action="{{ url_for('estoque.material_editar', material_id=mat.id) if mat else url_for('estoque.material_novo_post') }}">
+  <div class="row g-2">
+    <div class="col-12 col-md-3">
+      <label class="form-label">Código (opcional)</label>
+      <input class="form-control" name="codigo" value="{{ mat.codigo if mat else '' }}">
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">Descrição *</label>
+      <input class="form-control" name="descricao" required value="{{ mat.descricao if mat else '' }}">
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label">Unidade *</label>
+      <input class="form-control" name="unidade" required value="{{ mat.unidade if mat else '' }}">
+    </div>
+
+    <div class="col-12 col-md-3">
+      <label class="form-label">Estoque mínimo</label>
+      <input class="form-control" name="estoque_minimo" value="{{ mat.estoque_minimo if mat else '0' }}">
+    </div>
+
+    <div class="col-12 col-md-3">
+      <label class="form-label">Saldo atual em estoque</label>
+      <input class="form-control" name="saldo_atual" value="{{ mat.saldo_atual if mat else '0' }}">
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 mt-3">
+    <button class="btn btn-primary">Salvar</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('estoque.materiais') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

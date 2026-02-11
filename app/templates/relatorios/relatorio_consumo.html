@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+  <h4>Relatório de Consumo</h4>
+
+  <div class="d-flex gap-2">
+    <a class="btn btn-success"
+       href="{{ url_for('relatorios.exportar_excel') }}">
+       Exportar Excel
+    </a>
+    <a class="btn btn-danger"
+       href="{{ url_for('relatorios.exportar_pdf') }}">
+       Exportar PDF
+    </a>
+  </div>
+</div>
+
+<table class="table table-sm table-striped">
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Torre</th>
+      <th>Pav</th>
+      <th>Apto</th>
+      <th>Material</th>
+      <th class="text-end">Qtd</th>
+      <th>Un</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for l in linhas %}
+    <tr>
+      <td>{{ l.data.strftime("%d/%m/%Y") if l.data }}</td>
+      <td>{{ l.torre }}</td>
+      <td>{{ l.pav }}</td>
+      <td>{{ l.apto }}</td>
+      <td>{{ l.material }}</td>
+      <td class="text-end">{{ l.qtd }}</td>
+      <td>{{ l.unidade }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="mb-3">Login</h4>
+        <form method="post" action="{{ url_for('auth.login_post') }}">
+          <div class="mb-2">
+            <label class="form-label">Usuário</label>
+            <input class="form-control" name="login" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Senha</label>
+            <input class="form-control" name="senha" type="password" required>
+          </div>
+          <button class="btn btn-primary w-100">Entrar</button>
+          <div class="text-muted small mt-2">
+            Padrão do reset: <b>admin</b> / <b>admin123</b>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

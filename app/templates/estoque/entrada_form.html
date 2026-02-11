@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">Entrada #{{ ent.id }} <span class="text-muted">({{ ent.status }})</span></h4>
+  <a class="btn btn-outline-secondary" href="{{ url_for('estoque.entradas_lista') }}">Voltar</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post" action="{{ url_for('estoque.entrada_editar', entrada_id=ent.id) }}">
+          <div class="row g-2">
+            <div class="col-md-3">
+              <label class="form-label">Número da NF *</label>
+              <input class="form-control" name="numero_nf" value="{{ ent.numero_nf or '' }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">CNPJ/CPF *</label>
+              <input class="form-control" name="documento_fornecedor" value="{{ ent.documento_fornecedor or '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fornecedor</label>
+              <input class="form-control" name="nome_fornecedor" value="{{ ent.nome_fornecedor or '' }}">
+            </div>
+          </div>
+
+          <hr class="my-3">
+
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h6 class="mb-0 text-muted">Itens</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="addItem">+ Material</button>
+          </div>
+
+          <div id="itens"></div>
+
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-primary" name="acao" value="salvar">Salvar (Rascunho)</button>
+            <button class="btn btn-outline-secondary" name="acao" value="cancelar">Cancelar</button>
+          </div>
+        </form>
+
+        <form class="mt-3" method="post" action="{{ url_for('estoque.entrada_concluir', entrada_id=ent.id) }}">
+          <button class="btn btn-success" {% if ent.status == 'CONCLUIDA' %}disabled{% endif %}>
+            Concluir Entrada (atualiza estoque)
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Importar XML NF-e</h6>
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('estoque.entrada_importar_xml', entrada_id=ent.id) }}">
+          <input class="form-control mb-2" type="file" name="xml" accept=".xml">
+          <button class="btn btn-outline-primary w-100">Importar XML</button>
+        </form>
+
+        <hr class="my-3">
+
+        <h6 class="text-muted">Itens atuais</h6>
+        <ul class="mb-0">
+          {% for it in ent.itens %}
+            <li>{{ it.material.descricao }} — <b>{{ it.qtd }}</b> {{ it.material.unidade }}</li>
+          {% else %}
+            <li class="text-muted">Sem itens</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const materiais = [
+  {% for m in materiais %}
+  {id: {{ m.id }}, desc: {{ m.descricao|tojson }} },
+  {% endfor %}
+];
+
+function buildMaterialSelect(selectedId){
+  const sel = document.createElement("select");
+  sel.name = "material_id[]";
+  sel.className = "form-select";
+  sel.innerHTML = '<option value="">Selecione...</option>' + materiais.map(m =>
+    `<option value="${m.id}" ${selectedId==m.id ? "selected":""}>${m.desc}</option>`
+  ).join("");
+  return sel;
+}
+
+function addRow(selectedId, qtd){
+  const wrap = document.createElement("div");
+  wrap.className = "row g-2 align-items-end mb-2";
+
+  const c1 = document.createElement("div");
+  c1.className = "col-12 col-md-7";
+  const lab1 = document.createElement("label");
+  lab1.className = "form-label";
+  lab1.textContent = "Material";
+  const sel = buildMaterialSelect(selectedId);
+  c1.appendChild(lab1); c1.appendChild(sel);
+
+  const c2 = document.createElement("div");
+  c2.className = "col-8 col-md-3";
+  const lab2 = document.createElement("label");
+  lab2.className = "form-label";
+  lab2.textContent = "Quantidade";
+  const inp = document.createElement("input");
+  inp.name = "qtd[]";
+  inp.className = "form-control";
+  inp.inputMode = "decimal";
+  inp.value = qtd || "";
+  c2.appendChild(lab2); c2.appendChild(inp);
+
+  const c3 = document.createElement("div");
+  c3.className = "col-4 col-md-2";
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn btn-outline-danger w-100";
+  btn.textContent = "Remover";
+  btn.onclick = () => wrap.remove();
+  c3.appendChild(btn);
+
+  wrap.appendChild(c1); wrap.appendChild(c2); wrap.appendChild(c3);
+  document.getElementById("itens").appendChild(wrap);
+}
+
+// carrega itens existentes
+{% if ent.itens and ent.itens|length > 0 %}
+  {% for it in ent.itens %}
+    addRow({{ it.material_id }}, "{{ it.qtd }}");
+  {% endfor %}
+{% else %}
+  addRow(null, "");
+{% endif %}
+
+document.getElementById("addItem").addEventListener("click", () => addRow(null, ""));
+</script>
+{% endblock %}

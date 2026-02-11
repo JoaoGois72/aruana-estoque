@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">Relatório – Consumo por Torre/Apto (ENTREGUE)</h4>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-success"
+       href="{{ url_for('relatorios.relatorio_consumo_xlsx', de=de, ate=ate, torre=torre, pav=pav, apto=apto) }}">Excel</a>
+    <a class="btn btn-outline-danger"
+       href="{{ url_for('relatorios.relatorio_consumo_pdf', de=de, ate=ate, torre=torre, pav=pav, apto=apto) }}">PDF</a>
+  </div>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-12 col-md-2">
+    <label class="form-label">De</label>
+    <input type="date" class="form-control" name="de" value="{{ de }}">
+  </div>
+  <div class="col-12 col-md-2">
+    <label class="form-label">Até</label>
+    <input type="date" class="form-control" name="ate" value="{{ ate }}">
+  </div>
+  <div class="col-12 col-md-2">
+    <label class="form-label">Torre</label>
+    <input class="form-control" name="torre" value="{{ torre }}" placeholder="01">
+  </div>
+  <div class="col-12 col-md-2">
+    <label class="form-label">Pav</label>
+    <input class="form-control" name="pav" value="{{ pav }}" placeholder="Pav 1">
+  </div>
+  <div class="col-12 col-md-2">
+    <label class="form-label">Apto</label>
+    <input class="form-control" name="apto" value="{{ apto }}" placeholder="101">
+  </div>
+  <div class="col-12 col-md-2 d-flex align-items-end">
+    <button class="btn btn-outline-secondary w-100">Filtrar</button>
+  </div>
+</form>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <table class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Solic#</th>
+          <th>Entrega</th>
+          <th>Local</th>
+          <th>Material</th>
+          <th class="text-end">Qtd</th>
+          <th class="text-center">Un</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in itens %}
+        <tr>
+          <td>{{ it.solicitacao.id }}</td>
+          <td>{{ it.solicitacao.data_entrega.strftime("%d/%m/%Y") if it.solicitacao.data_entrega }}</td>
+          <td>
+            {{ it.solicitacao.local_torre }} /
+            {{ it.solicitacao.local_pav }} /
+            {{ it.solicitacao.local_apto }}
+          </td>
+          <td>{{ it.material.descricao if it.material else "-" }}</td>
+          <td class="text-end">{{ it.qtd }}</td>
+          <td class="text-center">{{ it.material.unidade if it.material else "-" }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-muted text-center">Nenhum registro</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

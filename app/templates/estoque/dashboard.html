@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h4 class="mb-4">Painel Gerencial da Obra</h4>
+
+<!-- INDICADORES -->
+<div class="row g-3 mb-4">
+
+  <div class="col-6 col-lg-3">
+    <div class="card shadow-sm text-center">
+      <div class="card-body">
+        <div class="text-muted small">Total em estoque</div>
+        <div class="fs-4 fw-bold">
+          {{ total_estoque|round(0) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="card shadow-sm text-center">
+      <div class="card-body">
+        <div class="text-muted small">Solicitações pendentes</div>
+        <div class="fs-4 fw-bold text-warning">
+          {{ solicitacoes_pendentes }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="card shadow-sm text-center">
+      <div class="card-body">
+        <div class="text-muted small">Materiais críticos</div>
+        <div class="fs-4 fw-bold text-danger">
+          {{ materiais_criticos }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="card shadow-sm text-center">
+      <div class="card-body">
+        <div class="text-muted small">Consumo no mês</div>
+        <div class="fs-4 fw-bold text-primary">
+          {{ consumo_mes|round(0) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row g-3">
+
+  <!-- Materiais com menor saldo -->
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6>Materiais com menor saldo</h6>
+        <canvas id="grafMateriais"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ranking de torres -->
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6>Ranking de torres por consumo</h6>
+        <canvas id="grafTorres"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const grafMateriais = {{ graf_materiais | tojson }};
+const rankingTorres = {{ ranking_torres | tojson }};
+
+// Materiais
+new Chart(document.getElementById("grafMateriais"), {
+    type: "bar",
+    data: {
+        labels: grafMateriais.map(i => i.descricao),
+        datasets: [{
+            label: "Saldo",
+            data: grafMateriais.map(i => i.saldo),
+        }]
+    }
+});
+
+// Ranking torres
+new Chart(document.getElementById("grafTorres"), {
+    type: "bar",
+    data: {
+        labels: rankingTorres.map(i => "Torre " + i.torre),
+        datasets: [{
+            label: "Consumo",
+            data: rankingTorres.map(i => i.qtd),
+        }]
+    }
+});
+</script>
+
+{% endblock %}

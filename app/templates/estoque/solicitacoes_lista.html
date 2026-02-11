@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid px-2">
+  <h4 class="mb-3 text-center">Solicitações</h4>
+
+  <a href="{{ url_for('estoque.solicitacao_nova') }}"
+     class="btn btn-primary w-100 mb-3">
+    + Nova Solicitação
+  </a>
+
+  {% for s in solicitacoes %}
+  <div class="card mb-3 shadow-sm">
+    <div class="card-body">
+
+      <div class="d-flex justify-content-between">
+        <strong>Solicitação #{{ s.id }}</strong>
+        <span class="badge bg-secondary">{{ s.status }}</span>
+      </div>
+
+      <div class="text-muted small">
+        {{ s.data_criacao.strftime("%d/%m/%Y") if s.data_criacao }}
+      </div>
+
+      <hr>
+
+      <!-- Materiais -->
+      {% for item in s.itens %}
+      <div class="d-flex justify-content-between">
+        <div>
+          {{ item.material.descricao }}
+        </div>
+        <strong>
+          {{ item.qtd }} {{ item.material.unidade }}
+        </strong>
+      </div>
+      {% endfor %}
+
+      <!-- Ações -->
+      {% if current_user.role in ["ADMIN", "ENGENHEIRO", "ALMOXARIFE"] %}
+      <div class="d-grid gap-2 mt-3">
+
+        {% if s.status == "PENDENTE" %}
+        <form method="post"
+              action="{{ url_for('estoque.solicitacao_aprovar', solicitacao_id=s.id) }}">
+          <button class="btn btn-success btn-lg w-100">
+            Aprovar
+          </button>
+        </form>
+        {% endif %}
+
+        {% if s.status in ["PENDENTE", "APROVADA"] %}
+        <form method="post"
+              action="{{ url_for('estoque.solicitacao_entregar', solicitacao_id=s.id) }}">
+          <button class="btn btn-warning btn-lg w-100">
+            Entregar Material
+          </button>
+        </form>
+        {% endif %}
+
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center text-muted">
+    Nenhuma solicitação encontrada
+  </div>
+  {% endfor %}
+
+</div>
+
+{% endblock %}

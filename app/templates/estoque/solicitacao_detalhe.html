@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">Solicitação #{{ s.id }}</h4>
+  <a class="btn btn-outline-secondary" href="{{ url_for('estoque.solicitacoes_lista') }}">Voltar</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div><b>Status:</b> {{ s.status }}</div>
+        <div><b>Data:</b> {{ s.data_criacao.strftime("%d/%m/%Y %H:%M") if s.data_criacao }}</div>
+        <div><b>Local:</b> {{ local }}</div>
+        {% if s.obs %}<div class="mt-2"><b>Obs:</b><br>{{ s.obs }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Itens</h6>
+        <ul class="mb-0">
+          {% for it in s.itens %}
+            <li>{{ it.material.descricao }} — <b>{{ it.qtd }}</b> {{ it.material.unidade }}</li>
+          {% endfor %}
+        </ul>
+
+        <div class="d-flex gap-2 mt-3">
+          {% if s.status == "PENDENTE" %}
+            <form method="post" action="{{ url_for('estoque.solicitacao_aprovar', solicitacao_id=s.id) }}">
+              <button class="btn btn-success">Aprovar (baixa estoque)</button>
+            </form>
+          {% endif %}
+          {% if s.status == "APROVADA" %}
+            <form method="post" action="{{ url_for('estoque.solicitacao_entregar', solicitacao_id=s.id) }}">
+              <button class="btn btn-primary">Marcar como Entregue</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

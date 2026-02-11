@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid px-2">
+
+  <h4 class="mb-3 text-center">Nova Solicitação</h4>
+
+  <form method="post">
+
+    <!-- LOCAL DA OBRA -->
+    <div class="card mb-3 shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Local da aplicação</h6>
+
+        <div class="mb-2">
+          <label class="form-label">Torre</label>
+          <select name="local_torre" class="form-select">
+            {% for i in range(1,7) %}
+              <option value="{{ "%02d"|format(i) }}">
+                Torre {{ "%02d"|format(i) }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Pavimento</label>
+          <select name="local_pav" id="pavimento" class="form-select">
+            <option value="Térreo">Térreo</option>
+            {% for i in range(1,8) %}
+              <option value="Pav {{ i }}">Pav {{ i }}</option>
+            {% endfor %}
+            <option value="Cobertura">Cobertura</option>
+          </select>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Apartamento</label>
+          <select name="local_apto" id="apto" class="form-select">
+            {% for i in range(1,9) %}
+              <option value="{{ "%02d"|format(i) }}">
+                {{ "%02d"|format(i) }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Outro local</label>
+          <input name="local_txt" class="form-control" placeholder="Ex: área externa, hall, etc.">
+        </div>
+
+        <div>
+          <label class="form-label">Observação</label>
+          <textarea name="obs" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATERIAIS -->
+    <div class="card mb-3 shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted">Materiais</h6>
+
+        <div id="itens-container">
+          <div class="item-row mb-3 border rounded p-2">
+            <label class="form-label">Material</label>
+            <select name="material_id[]" class="form-select">
+              {% for m in materiais %}
+              <option value="{{ m.id }}">
+                {{ m.descricao }} (Saldo: {{ m.saldo_atual or 0 }} {{ m.unidade }})
+              </option>
+              {% endfor %}
+            </select>
+
+            <label class="form-label mt-2">Quantidade</label>
+            <input
+              name="qtd[]"
+              type="number"
+              step="0.01"
+              min="0.01"
+              class="form-control"
+              placeholder="Ex: 10"
+              required
+            >
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-outline-primary w-100"
+          onclick="adicionarItem()"
+        >
+          + Adicionar Material
+        </button>
+
+      </div>
+    </div>
+
+    <!-- BOTÕES -->
+    <div class="d-grid gap-2 mb-5">
+      <button class="btn btn-success btn-lg">
+        Salvar Solicitação
+      </button>
+
+      <a href="{{ url_for('estoque.solicitacoes_lista') }}"
+         class="btn btn-outline-secondary btn-lg">
+        Cancelar
+      </a>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+function adicionarItem() {
+  const container = document.getElementById("itens-container");
+  const item = container.querySelector(".item-row");
+  const clone = item.cloneNode(true);
+
+  clone.querySelector("input").value = "";
+  container.appendChild(clone);
+}
+</script>
+
+{% endblock %}

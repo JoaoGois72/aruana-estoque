@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">Relatório – Estoque Atual</h4>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-success"
+       href="{{ url_for('relatorios.relatorio_estoque_xlsx', q=q) }}">Excel</a>
+    <a class="btn btn-outline-danger"
+       href="{{ url_for('relatorios.relatorio_estoque_pdf', q=q) }}">PDF</a>
+  </div>
+</div>
+
+<form class="d-flex gap-2 mb-3" method="get">
+  <input class="form-control" name="q" placeholder="Buscar material..." value="{{ q }}">
+  <button class="btn btn-outline-secondary">Buscar</button>
+</form>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <table class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Descrição</th>
+          <th class="text-end">Saldo</th>
+          <th class="text-end">Reservado</th>
+          <th class="text-end">Disponível</th>
+          <th class="text-center">Un</th>
+          <th class="text-end">Mínimo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in materiais %}
+        {% set saldo = m.saldo_atual or 0 %}
+        {% set reservado = m.reservado_atual or 0 %}
+        {% set disp = saldo - reservado %}
+        <tr>
+          <td>{{ m.codigo or "-" }}</td>
+          <td>{{ m.descricao }}</td>
+          <td class="text-end">{{ saldo }}</td>
+          <td class="text-end">{{ reservado }}</td>
+          <td class="text-end">
+            {% if disp <= 0 %}
+              <span class="badge bg-danger">{{ disp }}</span>
+            {% elif disp <= (m.estoque_minimo or 0) %}
+              <span class="badge bg-warning text-dark">{{ disp }}</span>
+            {% else %}
+              <span class="badge bg-success">{{ disp }}</span>
+            {% endif %}
+          </td>
+          <td class="text-center">{{ m.unidade }}</td>
+          <td class="text-end">{{ m.estoque_minimo or 0 }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-muted text-center">Nenhum material encontrado</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

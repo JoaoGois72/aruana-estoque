@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">Relatório de Estoque Atual</h4>
+
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('relatorios.relatorio_estoque_excel') }}"
+       class="btn btn-success btn-sm">
+      Exportar Excel
+    </a>
+    <a href="{{ url_for('relatorios.relatorio_estoque_pdf') }}"
+       class="btn btn-danger btn-sm">
+      Exportar PDF
+    </a>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <table class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Material</th>
+          <th>Unidade</th>
+          <th class="text-end">Saldo</th>
+          <th class="text-end">Estoque mínimo</th>
+          <th class="text-center">Situação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in materiais %}
+        {% set saldo = m.saldo_atual or 0 %}
+        <tr>
+          <td>{{ m.codigo or "-" }}</td>
+          <td>{{ m.descricao }}</td>
+          <td>{{ m.unidade }}</td>
+
+          <td class="text-end">
+            {{ saldo }}
+          </td>
+
+          <td class="text-end">
+            {{ m.estoque_minimo or 0 }}
+          </td>
+
+          <td class="text-center">
+            {% if saldo <= 0 %}
+              <span class="badge bg-danger">Sem estoque</span>
+            {% elif saldo <= (m.estoque_minimo or 0) %}
+              <span class="badge bg-warning text-dark">Baixo</span>
+            {% else %}
+              <span class="badge bg-success">Normal</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="text-center text-muted">
+            Nenhum material encontrado
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+
+ 

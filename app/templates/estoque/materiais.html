@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">Materiais</h4>
+  <a class="btn btn-primary" href="{{ url_for('estoque.material_novo') }}">Novo Material</a>
+</div>
+
+<form class="d-flex gap-2 mb-3" method="get" action="{{ url_for('estoque.materiais') }}">
+  <input class="form-control" name="q" placeholder="Buscar por descrição ou código..." value="{{ q }}">
+  <button class="btn btn-outline-secondary">Buscar</button>
+</form>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <table class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Descrição</th>
+          <th class="text-center">Unid</th>
+          <th class="text-end">Saldo</th>
+          <th class="text-end">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in materiais %}
+        <tr>
+          <td>{{ m.codigo or "-" }}</td>
+          <td class="fw-semibold">{{ m.descricao }}</td>
+          <td class="text-center">{{ m.unidade }}</td>
+          <td class="text-end">{{ m.saldo_atual or 0 }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('estoque.material_editar', material_id=m.id) }}">Editar</a>
+            <a class="btn btn-sm btn-outline-danger" href="{{ url_for('estoque.material_inativar', material_id=m.id) }}">Inativar</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-muted text-center">Nenhum material cadastrado</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
