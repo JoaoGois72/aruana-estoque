@@ -99,3 +99,18 @@ def usuario_inativar(user_id):
     db.session.commit()
     return redirect(url_for("admin.usuarios_lista"))
 
+@admin_bp.post("/usuarios/<int:user_id>/senha")
+@roles_required("ADMIN")
+def usuario_alterar_senha(user_id):
+    u = User.query.get_or_404(user_id)
+    nova = request.form.get("nova_senha")
+
+    if not nova:
+        flash("Informe a nova senha.", "warning")
+        return redirect(url_for("admin.usuarios_lista"))
+
+    u.set_password(nova)
+    db.session.commit()
+
+    flash("Senha atualizada.", "success")
+    return redirect(url_for("admin.usuarios_lista"))

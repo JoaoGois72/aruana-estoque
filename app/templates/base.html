@@ -49,6 +49,9 @@
         {% if current_user.role == "ADMIN" %}
         <li class="nav-item">
           <a class="nav-link" href="/admin/usuarios">Usuários</a>
+          <a class="dropdown-item" href="{{ url_for('auth.trocar_senha') }}">
+            Alterar senha
+          </a>
         </li>
         {% endif %}
 

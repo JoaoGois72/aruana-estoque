@@ -49,7 +49,17 @@
                 Resetar senha
               </button>
             </form>
-
+            <form method="post"
+              action="{{ url_for('admin.usuario_alterar_senha', user_id=u.id) }}"
+              style="display:inline">
+               <input type="password" name="nova_senha"
+                placeholder="Nova senha"
+                class="form-control form-control-sm d-inline"
+                style="width:120px">
+                <button class="btn btn-sm btn-warning">
+                Alterar senha
+                </button>
+             </form>
             {% if u.ativo %}
             <form method="post"
                   action="{{ url_for('admin.usuario_inativar', user_id=u.id) }}"
