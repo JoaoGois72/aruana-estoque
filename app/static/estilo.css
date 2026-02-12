@@ -1,0 +1,110 @@
+/* ===== TEMA ARUANA GARDEN ===== */
+
+body {
+    background-color: #F4F6F8;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Navbar */
+.navbar {
+    background: linear-gradient(90deg, #122A46, #1E4E79);
+    padding: 12px 16px;
+}
+
+.navbar-brand {
+    color: white !important;
+    font-weight: 600;
+    font-size: 20px;
+}
+
+.nav-link {
+    color: #e0e6ed !important;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: white !important;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Botões */
+.btn-primary {
+    background-color: #122A46;
+    border-color: #122A46;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background-color: #1E4E79;
+    border-color: #1E4E79;
+}
+
+.btn-success {
+    background-color: #198754;
+}
+
+.btn-danger {
+    background-color: #DC3545;
+}
+
+/* Badges de status */
+.badge-success {
+    background-color: #198754;
+}
+
+.badge-warning {
+    background-color: #FFC107;
+    color: #000;
+}
+
+.badge-danger {
+    background-color: #DC3545;
+}
+
+/* Tabelas */
+.table thead {
+    background-color: #122A46;
+    color: white;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+/* Campos de formulário */
+.form-control {
+    border-radius: 8px;
+}
+
+/* Títulos */
+h4 {
+    font-weight: 600;
+    color: #122A46;
+}
+
+/* Rodapé */
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .btn {
+        padding: 14px;
+        font-size: 16px;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    .table {
+        font-size: 14px;
+    }
+}
