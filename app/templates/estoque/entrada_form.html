@@ -84,6 +84,53 @@
   </div>
 </div>
 {% endblock %}
+<script>
+// ================= FORNECEDOR AUTOMÁTICO =================
+
+function onlyDigits(v){ return (v || "").replace(/\D+/g, ""); }
+
+function formatCpfCnpj(v){
+  const d = onlyDigits(v);
+  if (d.length <= 11){
+    let x = d.slice(0,11);
+    x = x.replace(/^(\d{3})(\d)/, "$1.$2");
+    x = x.replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3");
+    x = x.replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d{1,2})$/, "$1.$2.$3-$4");
+    return x;
+  }
+  let x = d.slice(0,14);
+  x = x.replace(/^(\d{2})(\d)/, "$1.$2");
+  x = x.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+  x = x.replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3/$4");
+  x = x.replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d{1,2})$/, "$1.$2.$3/$4-$5");
+  return x;
+}
+
+async function buscarFornecedorPorDocumento(docDigits){
+  const resp = await fetch(`/api/fornecedor?doc=${encodeURIComponent(docDigits)}`);
+  if (!resp.ok) return null;
+  return await resp.json();
+}
+
+const docInput  = document.getElementById("docFornecedor");
+const nomeInput = document.getElementById("nomeFornecedor");
+
+if (docInput){
+  docInput.addEventListener("input", () => {
+    docInput.value = formatCpfCnpj(docInput.value);
+  });
+
+  docInput.addEventListener("blur", async () => {
+    const d = onlyDigits(docInput.value);
+    if (d.length !== 11 && d.length !== 14) return;
+
+    const data = await buscarFornecedorPorDocumento(d);
+    if (data && data.ok && data.found && data.nome){
+      nomeInput.value = data.nome;
+    }
+  });
+}
+</script>
 
 {% block scripts %}
 <script>
