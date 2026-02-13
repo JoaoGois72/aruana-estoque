@@ -6,17 +6,19 @@ import os
 
 def create_app():
     app = Flask(__name__)
-    db_url = os.getenv("DATABASE_URL", "sqlite:///aruana.db")
+    app.config.from_object(Config)
 
-    # Render costuma usar "postgres://", o SQLAlchemy quer "postgresql+psycopg://"
-    if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+    db_url = os.getenv("DATABASE_URL")
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+    if db_url:
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aruana.db"
+
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
-
-    app.config.from_object(Config)
 
     db.init_app(app)
     login_manager.init_app(app)

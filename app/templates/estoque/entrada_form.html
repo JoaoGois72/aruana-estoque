@@ -14,15 +14,26 @@
             <div class="col-md-3">
               <label class="form-label">Número da NF *</label>
               <input class="form-control" name="numero_nf" value="{{ ent.numero_nf or '' }}">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">CNPJ/CPF *</label>
-              <input class="form-control" name="documento_fornecedor" value="{{ ent.documento_fornecedor or '' }}">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Fornecedor</label>
-              <input class="form-control" name="nome_fornecedor" value="{{ ent.nome_fornecedor or '' }}">
-            </div>
+               </div>
+                    <div class="col-md-4">
+                      <label class="form-label">CNPJ / CPF</label>
+                      <input type="text"
+                          id="documento"
+                          name="documento_fornecedor"
+                          class="form-control"
+                          placeholder="Digite o CNPJ ou CPF"
+                          onblur="buscarFornecedor()">
+                    </div>
+
+                    <div class="col-md-8">
+                      <label class="form-label">Razão Social</label>
+                      <input type="text"
+                            id="nome_fornecedor"
+                            name="nome_fornecedor"
+                            class="form-control"
+                            readonly>
+                    </div>
+
           </div>
 
           <hr class="my-3">
@@ -76,6 +87,7 @@
 
 {% block scripts %}
 <script>
+
 const materiais = [
   {% for m in materiais %}
   {id: {{ m.id }}, desc: {{ m.descricao|tojson }} },
@@ -83,54 +95,79 @@ const materiais = [
 ];
 
 function buildMaterialSelect(selectedId){
-  const sel = document.createElement("select");
-  sel.name = "material_id[]";
-  sel.className = "form-select";
-  sel.innerHTML = '<option value="">Selecione...</option>' + materiais.map(m =>
-    `<option value="${m.id}" ${selectedId==m.id ? "selected":""}>${m.desc}</option>`
-  ).join("");
-  return sel;
+    const sel = document.createElement("select");
+    sel.name = "material_id[]";
+    sel.className = "form-select";
+
+    let html = `<option value="">Selecione...</option>`;
+
+    materiais.forEach(m => {
+        const selected = (selectedId && selectedId == m.id) ? "selected" : "";
+        html += `<option value="${m.id}" ${selected}>
+                    ${m.desc}
+                 </option>`;
+    });
+
+    sel.innerHTML = html;
+    return sel;
 }
 
 function addRow(selectedId, qtd){
-  const wrap = document.createElement("div");
-  wrap.className = "row g-2 align-items-end mb-2";
+    const wrap = document.createElement("div");
+    wrap.className = "row g-2 align-items-end mb-2";
 
-  const c1 = document.createElement("div");
-  c1.className = "col-12 col-md-7";
-  const lab1 = document.createElement("label");
-  lab1.className = "form-label";
-  lab1.textContent = "Material";
-  const sel = buildMaterialSelect(selectedId);
-  c1.appendChild(lab1); c1.appendChild(sel);
+    // MATERIAL
+    const c1 = document.createElement("div");
+    c1.className = "col-12 col-md-7";
 
-  const c2 = document.createElement("div");
-  c2.className = "col-8 col-md-3";
-  const lab2 = document.createElement("label");
-  lab2.className = "form-label";
-  lab2.textContent = "Quantidade";
-  const inp = document.createElement("input");
-  inp.name = "qtd[]";
-  inp.className = "form-control";
-  inp.inputMode = "decimal";
-  inp.value = qtd || "";
-  c2.appendChild(lab2); c2.appendChild(inp);
+    const lab1 = document.createElement("label");
+    lab1.className = "form-label";
+    lab1.textContent = "Material";
 
-  const c3 = document.createElement("div");
-  c3.className = "col-4 col-md-2";
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "btn btn-outline-danger w-100";
-  btn.textContent = "Remover";
-  btn.onclick = () => wrap.remove();
-  c3.appendChild(btn);
+    const sel = buildMaterialSelect(selectedId);
 
-  wrap.appendChild(c1); wrap.appendChild(c2); wrap.appendChild(c3);
-  document.getElementById("itens").appendChild(wrap);
+    c1.appendChild(lab1);
+    c1.appendChild(sel);
+
+    // QUANTIDADE
+    const c2 = document.createElement("div");
+    c2.className = "col-8 col-md-3";
+
+    const lab2 = document.createElement("label");
+    lab2.className = "form-label";
+    lab2.textContent = "Quantidade";
+
+    const inp = document.createElement("input");
+    inp.name = "qtd[]";
+    inp.className = "form-control";
+    inp.inputMode = "decimal";
+    inp.value = qtd || "";
+
+    c2.appendChild(lab2);
+    c2.appendChild(inp);
+
+    // BOTÃO REMOVER
+    const c3 = document.createElement("div");
+    c3.className = "col-4 col-md-2";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn btn-outline-danger w-100";
+    btn.textContent = "Remover";
+    btn.onclick = () => wrap.remove();
+
+    c3.appendChild(btn);
+
+    // MONTA LINHA
+    wrap.appendChild(c1);
+    wrap.appendChild(c2);
+    wrap.appendChild(c3);
+
+    document.getElementById("itens").appendChild(wrap);
 }
 
 // carrega itens existentes
-{% if ent.itens and ent.itens|length > 0 %}
+{% if ent and ent.itens and ent.itens|length > 0 %}
   {% for it in ent.itens %}
     addRow({{ it.material_id }}, "{{ it.qtd }}");
   {% endfor %}
@@ -138,6 +175,12 @@ function addRow(selectedId, qtd){
   addRow(null, "");
 {% endif %}
 
-document.getElementById("addItem").addEventListener("click", () => addRow(null, ""));
+// botão adicionar
+const btnAdd = document.getElementById("addItem");
+if (btnAdd) {
+    btnAdd.addEventListener("click", () => addRow(null, ""));
+}
 </script>
 {% endblock %}
+
+
