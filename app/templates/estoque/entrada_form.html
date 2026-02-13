@@ -17,21 +17,17 @@
                </div>
                     <div class="col-md-4">
                       <label class="form-label">CNPJ / CPF</label>
-                      <input type="text"
-                          id="documento"
-                          name="documento_fornecedor"
-                          class="form-control"
-                          placeholder="Digite o CNPJ ou CPF"
-                          onblur="buscarFornecedor()">
+                      <input id="docFornecedor" name="documento_fornecedor" class="form-control"
+                         value="{{ ent.documento_fornecedor or '' }}"
+                         placeholder="00.000.000/0000-00 ou 000.000.000-00">
                     </div>
 
                     <div class="col-md-8">
                       <label class="form-label">Razão Social</label>
-                      <input type="text"
-                            id="nome_fornecedor"
-                            name="nome_fornecedor"
-                            class="form-control"
-                            readonly>
+                      <label class="form-label">Fornecedor (Razão Social)</label>
+                          <input id="nomeFornecedor" name="nome_fornecedor" class="form-control"
+                           value="{{ ent.nome_fornecedor or '' }}"
+                           placeholder="Preenche automático ao informar o CNPJ/CPF">    
                     </div>
 
           </div>
