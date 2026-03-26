@@ -694,6 +694,6 @@ def categoria_inativar(id):
 @estoque_bp.route("/relatorios")
 @login_required
 def relatorios():
-    return render_template("relatorios/.html")
+    return render_template("relatorios/index.html")
 
 
