@@ -433,7 +433,7 @@ def entrada_excluir(entrada_id):
 
 # ------------------------- fornecedores -------------------------
 @estoque_bp.get("/fornecedores")
-@role_required("registrar_entrada_nf")
+@role_required("ver_fornecedores")
 def fornecedores_lista():
     q = (request.args.get("q") or "").strip()
     base_q = Fornecedor.query.filter_by(ativo=True)
@@ -444,7 +444,7 @@ def fornecedores_lista():
     return render_template("estoque/fornecedores.html", fornecedores=fornecedores, q=q)
 
 @estoque_bp.post("/fornecedores/novo")
-@role_required("registrar_entrada_nf")
+@role_required("cadastrar_fornecedor")
 def fornecedor_novo():
     documento = _clean_doc(request.form.get("documento") or "")
     nome = (request.form.get("nome") or "").strip()
@@ -490,7 +490,7 @@ def fornecedor_buscar():
     })
 
 @estoque_bp.post("/fornecedores/<int:fornecedor_id>/inativar")
-@role_required("ADMIN")
+@role_required("ADMIN", "ALMOXARIFE")
 def fornecedor_inativar(fornecedor_id):
     f = Fornecedor.query.get_or_404(fornecedor_id)
     f.ativo = False
