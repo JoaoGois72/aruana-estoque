@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h4>{{ "Editar Categoria" if categoria else "Nova Categoria" }}</h4>
+
+<form method="post" class="card p-3 shadow-sm mt-3">
+  <div class="row g-2">
+    <div class="col-md-6">
+      <label class="form-label">Nome da categoria</label>
+      <input type="text"
+             name="nome"
+             class="form-control"
+             value="{{ categoria.nome if categoria else '' }}"
+             required>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <button class="btn btn-primary">Salvar</button>
+    <a href="{{ url_for('estoque.categorias_lista') }}" class="btn btn-secondary">
+      Cancelar
+    </a>
+  </div>
+</form>
+
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">Materiais</h4>
+  <form method="get" class="row g-2 mt-3">
+
+    <div class="col-md-6">
+      <input type="text"
+            name="busca"
+            class="form-control"
+            placeholder="Buscar por descrição ou código..."
+            value="{{ busca }}">
+    </div>
+
+    <div class="col-md-4">
+      <select name="categoria_id" class="form-select">
+        <option value="">Todas as categorias</option>
+        {% for c in categorias %}
+          <option value="{{ c.id }}"
+            {% if categoria_id == c.id|string %}selected{% endif %}>
+            {{ c.nome }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-2 d-grid">
+      <button class="btn btn-primary">Buscar</button>
+    </div>
+
+  </form>
+  <a class="btn btn-primary" href="{{ url_for('estoque.material_novo') }}">Novo Material</a>
+</div>
+
+<div class="card shadow-sm">
+      
+  <div class="card shadow-sm mt-3">
+  <div class="card-body">
+
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Descrição</th>
+          <th>Categoria</th>
+          <th>Unid</th>
+          <th>Saldo</th>
+          <th class="text-end">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for m in materiais %}
+        <tr>
+
+          <td><strong>{{ m.codigo }}</strong></td>
+
+          <td>{{ m.nome }}</td>
+
+          <td>
+            <span class="badge bg-primary">
+              {{ m.categoria.nome }}
+            </span>
+          </td>
+
+          <td>{{ m.unidade }}</td>
+
+          <td>
+            {% if m.saldo_atual <= m.estoque_minimo %}
+              <span class="badge bg-danger">
+                {{ m.saldo_atual }}
+              </span>
+            {% else %}
+              <span class="badge bg-success">
+                {{ m.saldo_atual }}
+              </span>
+            {% endif %}
+          </td>
+
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary"
+               href="{{ url_for('estoque.material_editar', id=m.id) }}">
+               Editar
+            </a>
+
+            <a class="btn btn-sm btn-outline-danger"
+               href="{{ url_for('estoque.material_inativar', id=m.id) }}">
+               Inativar
+            </a>
+          </td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</div>
+  </div>
+</div>
+{% endblock %}

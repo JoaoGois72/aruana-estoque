@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h4>Solicitações</h4>
+
+<div class="mb-3">
+  <a href="{{ url_for('estoque.solicitacao_nova') }}" class="btn btn-primary">Nova Solicitação</a>
+</div>
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Data</th>
+      <th>Status</th>
+      <th>Local</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in solicitacoes %}
+    <tr>
+      <td>{{ s.id }}</td>
+      <td>{{ s.data_solicitacao.strftime("%d/%m/%Y %H:%M") if s.data_solicitacao else "" }}</td>
+      <td>{{ s.status }}</td>
+      <td>{{ s.local_torre or "" }} {{ s.local_pav or "" }} {{ s.local_apto or "" }}</td>
+      <td>
+        <a href="{{ url_for('estoque.solicitacao_detalhe', id=s.id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

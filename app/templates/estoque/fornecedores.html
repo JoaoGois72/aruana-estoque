@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">Fornecedores</h4>
+</div>
+
+<form class="d-flex gap-2 mb-3" method="get" action="{{ url_for('estoque.fornecedores_lista') }}">
+  <input class="form-control" name="q" placeholder="Buscar por CNPJ/CPF..." value="{{ q }}">
+  <button class="btn btn-outline-secondary">Buscar</button>
+</form>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <h6 class="text-muted">Cadastrar / Atualizar</h6>
+    <form method="post" action="{{ url_for('estoque.fornecedor_novo') }}" class="row g-2">
+      <div class="col-12 col-md-3">
+        <label class="form-label">CNPJ/CPF</label>
+        <input class="form-control" name="documento" required>
+      </div>
+      <div class="col-12 col-md-7">
+        <label class="form-label">Nome</label>
+        <input class="form-control" name="nome" required>
+      </div>
+      <div class="col-12 col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <table class="table table-sm table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Documento</th>
+          <th>Nome</th>
+          <th class="text-end">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in fornecedores %}
+        <tr>
+          <td>{{ f.id }}</td>
+          <td>{{ f.documento }}</td>
+          <td>{{ f.nome }}</td>
+
+          <td class="text-end">
+            {% if current_user.role == "ADMIN" and f.ativo %}
+            <form method="post"
+                  action="{{ url_for('estoque.fornecedor_inativar', fornecedor_id=f.id) }}"
+                  style="display:inline"
+                  onsubmit="return confirm('Deseja inativar este fornecedor?');">
+              <button class="btn btn-sm btn-danger">
+                Inativar
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" class="text-center text-muted">
+            Nenhum fornecedor encontrado
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

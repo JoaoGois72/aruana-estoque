@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">Relatório – Entradas por Fornecedor</h4>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-success"
+       href="{{ url_for('relatorios.relatorio_entradas_fornecedor_xlsx', de=de, ate=ate, doc=doc) }}">Excel</a>
+    <a class="btn btn-outline-danger"
+       href="{{ url_for('relatorios.relatorio_entradas_fornecedor_pdf', de=de, ate=ate, doc=doc) }}">PDF</a>
+  </div>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-12 col-md-3">
+    <label class="form-label">De</label>
+    <input type="date" class="form-control" name="de" value="{{ de }}">
+  </div>
+  <div class="col-12 col-md-3">
+    <label class="form-label">Até</label>
+    <input type="date" class="form-control" name="ate" value="{{ ate }}">
+  </div>
+  <div class="col-12 col-md-4">
+    <label class="form-label">Fornecedor (doc ou nome)</label>
+    <input class="form-control" name="doc" value="{{ doc }}">
+  </div>
+  <div class="col-12 col-md-2 d-flex align-items-end">
+    <button class="btn btn-outline-secondary w-100">Filtrar</button>
+  </div>
+</form>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <table class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Entrada#</th>
+          <th>Data</th>
+          <th>NF</th>
+          <th>Fornecedor</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in entradas %}
+        <tr>
+          <td>{{ e.id }}</td>
+          <td>{{ e.data_entrada.strftime("%d/%m/%Y") if e.data_entrada }}</td>
+          <td>{{ e.numero_nf or "-" }}</td>
+          <td>{{ e.nome_fornecedor or "-" }}</td>
+          <td>{{ e.status }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-muted text-center">Nenhuma entrada encontrada</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h4>Solicitação #{{ solicitacao.id }}</h4>
+
+<p><strong>Status:</strong> {{ solicitacao.status }}</p>
+<p><strong>Local:</strong> {{ solicitacao.local_torre or "" }} {{ solicitacao.local_pav or "" }} {{ solicitacao.local_apto or "" }}</p>
+<p><strong>Observação:</strong> {{ solicitacao.observacao or "-" }}</p>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Material</th>
+      <th>Qtd</th>
+      <th>Unidade</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in solicitacao.itens %}
+    <tr>
+      <td>{{ item.material.nome if item.material else "" }}</td>
+      <td>{{ item.qtd }}</td>
+      <td>{{ item.material.unidade if item.material else "" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="mt-3">
+  {% if solicitacao.status == "PENDENTE" and current_user.role in ["ADMIN", "ENGENHEIRO"] %}
+    <form method="post" action="{{ url_for('estoque.solicitacao_aprovar', id=solicitacao.id) }}" style="display:inline-block;">
+      <button class="btn btn-success">Aprovar</button>
+    </form>
+
+    <form method="post" action="{{ url_for('estoque.solicitacao_rejeitar', id=solicitacao.id) }}" style="display:inline-block;">
+      <button class="btn btn-danger">Rejeitar</button>
+    </form>
+  {% endif %}
+
+  {% if solicitacao.status == "APROVADA" and current_user.role in ["ADMIN", "ALMOXARIFE"] %}
+    <form method="post" action="{{ url_for('estoque.solicitacao_entregar', id=solicitacao.id) }}" style="display:inline-block;">
+      <button class="btn btn-primary">Entregar</button>
+    </form>
+  {% endif %}
+</div>
+
+{% endblock %}
