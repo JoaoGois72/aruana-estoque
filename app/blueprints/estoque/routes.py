@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import current_user, login_required
+from flask import jsonify
 
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
