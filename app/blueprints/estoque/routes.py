@@ -699,6 +699,7 @@ def relatorios():
 
 from flask import jsonify, request
 from flask_login import login_required
+from sqlalchemy import or_
 
 @estoque_bp.get("/materiais/buscar")
 @login_required
@@ -712,8 +713,8 @@ def materiais_buscar():
         Material.query
         .filter(
             Material.ativo == True,
-            (
-                Material.nome.ilike(f"%{termo}%") |
+            or_(
+                Material.nome.ilike(f"%{termo}%"),
                 Material.codigo.ilike(f"%{termo}%")
             )
         )
@@ -726,9 +727,10 @@ def materiais_buscar():
         "results": [
             {
                 "id": m.id,
-                "text": f"{m.codigo or '-'} - {m.nome} | Saldo: {m.saldo_atual} {m.unidade}"
+                "text": f"{m.codigo or '-'} - {m.nome}",
+                "saldo": float(m.saldo_atual or 0),
+                "unidade": m.unidade or ""
             }
             for m in materiais
         ]
     })
-
