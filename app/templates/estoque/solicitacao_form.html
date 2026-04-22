@@ -24,10 +24,10 @@
   </div>
 
   <div id="itens">
-    <div class="row g-2 mb-2 item-row">
+    <div class="row g-2 item-material mb-2">
       <div class="col-md-8">
         <label class="form-label">Material</label>
-        <select name="material_id[]" class="form-select">
+        <select name="material_id[]" class="form-select select2-materiais" required>
           <option value="">Selecione</option>
           {% for m in materiais %}
             <option value="{{ m.id }}">{{ m.codigo or '' }} - {{ m.nome }}</option>
