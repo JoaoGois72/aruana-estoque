@@ -697,4 +697,31 @@ def categoria_inativar(id):
 def relatorios():
     return render_template("relatorios/index.html")
 
+@estoque_bp.get("/materiais/buscar")
+@login_required
+def materiais_buscar():
+    termo = (request.args.get("q") or "").strip()
+
+    if not termo:
+        return jsonify([])
+
+    materiais = (
+        Material.query
+        .filter(
+            Material.ativo == True,
+            Material.nome.ilike(f"%{termo}%")
+        )
+        .order_by(Material.nome.asc())
+        .limit(20)
+        .all()
+    )
+
+    return jsonify([
+        {
+            "id": m.id,
+            "text": f"{m.nome} | Saldo: {m.saldo_atual} {m.unidade}"
+        }
+        for m in materiais
+    ])
+
 
