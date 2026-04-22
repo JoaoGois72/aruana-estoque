@@ -76,7 +76,6 @@
 
 {% block scripts %}
 <script>
-
 function iniciarSelectMaterial(el) {
     $(el).select2({
         placeholder: "Digite nome ou código do material...",
@@ -99,40 +98,10 @@ function iniciarSelectMaterial(el) {
     });
 }
 
-// 🚀 INICIALIZA PRIMEIRA LINHA
 $(document).ready(function () {
-    iniciarSelectMaterial($('.material-select'));
+    $('.material-select').each(function () {
+        iniciarSelectMaterial(this);
+    });
 });
-
-// ➕ ADICIONAR NOVA LINHA
-$('#add-item').click(function () {
-
-    let novaLinha = `
-        <tr>
-            <td>
-                <select name="material_id[]" class="form-select material-select" required></select>
-            </td>
-            <td>
-                <input type="number" step="0.01" name="qtd[]" class="form-control" required>
-            </td>
-            <td class="text-center">
-                <button type="button" class="btn btn-danger btn-sm remover">✖</button>
-            </td>
-        </tr>
-    `;
-
-    $('#tabela-itens tbody').append(novaLinha);
-
-    let ultimoSelect = $('#tabela-itens tbody tr:last .material-select');
-    iniciarSelectMaterial(ultimoSelect);
-});
-
-// ❌ REMOVER LINHA
-$(document).on('click', '.remover', function () {
-    if ($('#tabela-itens tbody tr').length > 1) {
-        $(this).closest('tr').remove();
-    }
-});
-
 </script>
 {% endblock %}
