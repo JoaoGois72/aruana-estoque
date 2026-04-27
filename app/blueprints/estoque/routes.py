@@ -240,7 +240,7 @@ def solicitacao_detalhe(id):
         joinedload(Solicitacao.itens).joinedload(SolicitacaoItem.material)
     ).get_or_404(id)
 
-    if current_user.role not in ["ADMIN", "ENGENHEIRO", "ALMOXARIFE"] and s.usuario_id != current_user.id:
+    if current_user.role not in ["ADMIN", "ENGENHEIRO", "ALMOXARIFE", "AUX_ALMOX"] and s.usuario_id != current_user.id:
         flash("Você não tem acesso a esta solicitação.", "danger")
         return redirect(url_for("estoque.solicitacoes_lista"))
 
