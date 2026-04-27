@@ -249,7 +249,7 @@ def solicitacao_detalhe(id):
 
 @estoque_bp.route("/solicitacoes/<int:id>/aprovar", methods=["POST"])
 @login_required
-@role_required("ADMIN", "ENGENHEIRO", "MESTRE")
+@role_required("ADMIN", "ENGENHEIRO", "MESTRE", "AUX_ALMOX")
 def solicitacao_aprovar(id):
     s = Solicitacao.query.options(
         joinedload(Solicitacao.itens).joinedload(SolicitacaoItem.material)
