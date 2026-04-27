@@ -322,6 +322,20 @@ def solicitacao_entregar(id):
     flash("Solicitação entregue e estoque baixado com sucesso.", "success")
     return redirect(url_for("estoque.solicitacao_detalhe", id=id))
 
+from flask import jsonify
+from flask_login import login_required, current_user
+
+@estoque_bp.get("/solicitacoes/pendentes/qtd")
+@login_required
+def solicitacoes_pendentes_qtd():
+    if current_user.role not in ["ADMIN", "ALMOXARIFE", "AUX_ALMOX"]:
+        return jsonify({"total": 0})
+
+    total = Solicitacao.query.filter_by(status="PENDENTE").count()
+
+    return jsonify({
+        "total": total
+    })
 # ------------------------- entradas -------------------------
 @estoque_bp.get("/entradas")
 @role_required("ALMOXARIFE", "ENGENHEIRO", "ADMIN", "registrar_entrada_nf")
