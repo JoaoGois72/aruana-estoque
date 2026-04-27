@@ -64,6 +64,15 @@
   </div>
 </nav>
 
+{% if current_user.is_authenticated and current_user.role in ["ADMIN", "ALMOXARIFE", "AUX_ALMOX"] %}
+<div id="alerta-pendentes" class="alert alert-warning text-center m-0 d-none">
+  🔔 Existem <strong id="qtd-pendentes">0</strong> solicitações pendentes.
+  <a href="{{ url_for('estoque.solicitacoes_lista') }}?status=PENDENTE" class="btn btn-sm btn-dark ms-2">
+    Ver solicitações
+  </a>
+</div>
+{% endif %}
+
 <div class="container py-3">
 
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -104,6 +113,34 @@ $(document).ready(function () {
     });
 });
 </script>
+
+{% if current_user.is_authenticated and current_user.role in ["ADMIN", "ALMOXARIFE", "AUX_ALMOX"] %}
+<script>
+function verificarSolicitacoesPendentes() {
+    fetch("{{ url_for('estoque.solicitacoes_pendentes_qtd') }}")
+        .then(response => response.json())
+        .then(data => {
+            const alerta = document.getElementById("alerta-pendentes");
+            const qtd = document.getElementById("qtd-pendentes");
+
+            if (!alerta || !qtd) return;
+
+            if (data.total > 0) {
+                qtd.innerText = data.total;
+                alerta.classList.remove("d-none");
+            } else {
+                alerta.classList.add("d-none");
+            }
+        })
+        .catch(error => console.log("Erro ao verificar pendentes:", error));
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    verificarSolicitacoesPendentes();
+    setInterval(verificarSolicitacoesPendentes, 10000);
+});
+</script>
+{% endif %}
 
 {% block scripts %}{% endblock %}
 
