@@ -162,7 +162,7 @@ def solicitacoes_lista():
         q = q.filter(Solicitacao.status == status)
 
     # encarregado vê só as próprias, admin/engenheiro/almoxarife veem tudo
-    if current_user.role not in ["ADMIN", "ENGENHEIRO", "ALMOXARIFE"]:
+    if current_user.role not in ["ADMIN", "ENGENHEIRO", "ALMOXARIFE", "AUX_ALMOX"]:
         q = q.filter(Solicitacao.usuario_id == current_user.id)
 
     solicitacoes = q.order_by(Solicitacao.id.desc()).all()
@@ -288,7 +288,7 @@ def solicitacao_rejeitar(id):
 
 @estoque_bp.route("/solicitacoes/<int:id>/entregar", methods=["POST"])
 @login_required
-@role_required("ADMIN", "ALMOXARIFE")
+@role_required("ADMIN", "ALMOXARIFE", "AUX_ALMOX")
 def solicitacao_entregar(id):
     s = Solicitacao.query.options(
         joinedload(Solicitacao.itens).joinedload(SolicitacaoItem.material)
