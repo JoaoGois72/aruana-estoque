@@ -1,4 +1,5 @@
 from datetime import datetime
+from app.models.user import User
 from decimal import Decimal, InvalidOperation
 import re
 import xml.etree.ElementTree as ET
@@ -243,8 +244,9 @@ def solicitacao_detalhe(id):
     if current_user.role not in ["ADMIN", "ENGENHEIRO", "ALMOXARIFE", "AUX_ALMOX"] and s.usuario_id != current_user.id:
         flash("Você não tem acesso a esta solicitação.", "danger")
         return redirect(url_for("estoque.solicitacoes_lista"))
-
-    return render_template("estoque/solicitacao_detalhe.html", solicitacao=s)
+    usuario = User.query.get(s.usuario_id) if s.usuario_id else None
+    
+    return render_template("estoque/solicitacao_detalhe.html", solicitacao=s, usuario_solicitante=usuario)
 
 
 @estoque_bp.route("/solicitacoes/<int:id>/aprovar", methods=["POST"])
