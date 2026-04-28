@@ -322,8 +322,8 @@ def solicitacao_entregar(id):
     flash("Solicitação entregue e estoque baixado com sucesso.", "success")
     return redirect(url_for("estoque.solicitacao_detalhe", id=id))
 
-from flask import jsonify
-from flask_login import login_required, current_user
+
+from sqlalchemy import func
 
 @estoque_bp.get("/solicitacoes/pendentes/qtd")
 @login_required
