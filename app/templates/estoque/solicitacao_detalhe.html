@@ -3,6 +3,7 @@
 
 <h4>Solicitação #{{ solicitacao.id }}</h4>
 
+<p><strong>Solicitado por:</strong> {{ usuario_solicitante.nome if usuario_solicitante else "Não informado" }}<p>
 <p><strong>Status:</strong> {{ solicitacao.status }}</p>
 <p><strong>Local:</strong> {{ solicitacao.local_torre or "" }} {{ solicitacao.local_pav or "" }} {{ solicitacao.local_apto or "" }}</p>
 <p><strong>Observação:</strong> {{ solicitacao.observacao or "-" }}</p>
