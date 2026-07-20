@@ -41,14 +41,56 @@ def executar():
             for comando in comandos:
                 db.session.execute(text(comando))
 
+            # Ajusta os itens antigos conforme o status da solicitação.
+            db.session.execute(
+                text(
+                    """
+                    UPDATE solicitacao_item AS item
+                    SET
+                        status = CASE
+                            WHEN solicitacao.status = 'APROVADA'
+                                THEN 'APROVADO'
+                            WHEN solicitacao.status = 'ENTREGUE'
+                                THEN 'ENTREGUE'
+                            WHEN solicitacao.status = 'REJEITADA'
+                                THEN 'REJEITADO'
+                            ELSE 'PENDENTE'
+                        END,
+
+                        qtd_aprovada = CASE
+                            WHEN solicitacao.status IN (
+                                'APROVADA',
+                                'ENTREGUE'
+                            )
+                                THEN item.qtd
+                            WHEN solicitacao.status = 'REJEITADA'
+                                THEN 0
+                            ELSE NULL
+                        END
+
+                    FROM solicitacao
+
+                    WHERE solicitacao.id = item.solicitacao_id
+                    """
+                )
+            )
+
             db.session.commit()
 
-            print("Colunas criadas ou já existentes.")
-            print("Atualização concluída com sucesso.")
+            print("========================================")
+            print("BANCO ATUALIZADO COM SUCESSO")
+            print("Colunas da solicitacao_item criadas.")
+            print("Itens antigos ajustados.")
+            print("========================================")
 
         except Exception as erro:
             db.session.rollback()
-            print(f"Erro ao atualizar o banco: {erro}")
+
+            print("========================================")
+            print("ERRO AO ATUALIZAR O BANCO")
+            print(str(erro))
+            print("========================================")
+
             raise
 
 
