@@ -247,82 +247,117 @@ def solicitacao_detalhe(id):
     usuario = User.query.get(s.usuario_id) if s.usuario_id else None
     
     return render_template("estoque/solicitacao_detalhe.html", solicitacao=s, usuario_solicitante=usuario)
-
-
+    
 @estoque_bp.route("/solicitacoes/<int:id>/aprovar", methods=["POST"])
 @login_required
-@role_required("ADMIN", "ENGENHEIRO", "MESTRE", "AUX_ALMOX")
+@role_required("ENGENHEIRO", "ALMOXARIFE", "AUX_ALMOX")
 def solicitacao_aprovar(id):
     s = Solicitacao.query.options(
-        joinedload(Solicitacao.itens).joinedload(SolicitacaoItem.material)
+        joinedload(Solicitacao.itens)
+        .joinedload(SolicitacaoItem.material)
     ).get_or_404(id)
 
     if s.status != "PENDENTE":
-        flash("Só é possível aprovar solicitação pendente.", "warning")
-        return redirect(url_for("estoque.solicitacao_detalhe", id=id))
+        flash(
+            "Só é possível aprovar solicitação pendente.",
+            "warning"
+        )
+        return redirect(
+            url_for("estoque.solicitacao_detalhe", id=id)
+        )
 
-    # opcional: validar estoque antes da aprovação
     s.status = "APROVADA"
     s.data_aprovacao = datetime.utcnow()
     s.aprovado_por_id = current_user.id
 
     db.session.commit()
+
     flash("Solicitação aprovada com sucesso.", "success")
-    return redirect(url_for("estoque.solicitacao_detalhe", id=id))
+    return redirect(
+        url_for("estoque.solicitacao_detalhe", id=id)
+    )
 
 
 @estoque_bp.route("/solicitacoes/<int:id>/rejeitar", methods=["POST"])
 @login_required
-@role_required("ADMIN", "ENGENHEIRO")
+@role_required("ENGENHEIRO", "ALMOXARIFE", "AUX_ALMOX")
 def solicitacao_rejeitar(id):
     s = Solicitacao.query.get_or_404(id)
 
     if s.status != "PENDENTE":
-        flash("Só é possível rejeitar solicitação pendente.", "warning")
-        return redirect(url_for("estoque.solicitacao_detalhe", id=id))
+        flash(
+            "Só é possível rejeitar solicitação pendente.",
+            "warning"
+        )
+        return redirect(
+            url_for("estoque.solicitacao_detalhe", id=id)
+        )
 
     s.status = "REJEITADA"
+
     db.session.commit()
 
     flash("Solicitação rejeitada.", "info")
-    return redirect(url_for("estoque.solicitacao_detalhe", id=id))
+    return redirect(
+        url_for("estoque.solicitacao_detalhe", id=id)
+    )
 
 
 @estoque_bp.route("/solicitacoes/<int:id>/entregar", methods=["POST"])
 @login_required
-@role_required("ADMIN", "ALMOXARIFE", "AUX_ALMOX")
+@role_required("ALMOXARIFE", "AUX_ALMOX")
 def solicitacao_entregar(id):
     s = Solicitacao.query.options(
-        joinedload(Solicitacao.itens).joinedload(SolicitacaoItem.material)
+        joinedload(Solicitacao.itens)
+        .joinedload(SolicitacaoItem.material)
     ).get_or_404(id)
 
     if s.status != "APROVADA":
-        flash("Só é possível entregar solicitação aprovada.", "warning")
-        return redirect(url_for("estoque.solicitacao_detalhe", id=id))
+        flash(
+            "Só é possível entregar solicitação aprovada.",
+            "warning"
+        )
+        return redirect(
+            url_for("estoque.solicitacao_detalhe", id=id)
+        )
 
-    # valida estoque
     for item in s.itens:
-        mat = item.material
-        qtd = Decimal(item.qtd or 0)
-        saldo = Decimal(mat.saldo_atual or 0)
+        material = item.material
+        quantidade = Decimal(item.qtd or 0)
+        saldo = Decimal(material.saldo_atual or 0)
 
-        if saldo < qtd:
-            flash(f"Estoque insuficiente para {mat.nome}.", "danger")
-            return redirect(url_for("estoque.solicitacao_detalhe", id=id))
+        if saldo < quantidade:
+            flash(
+                f"Estoque insuficiente para {material.nome}.",
+                "danger"
+            )
+            return redirect(
+                url_for("estoque.solicitacao_detalhe", id=id)
+            )
 
-    # baixa estoque
     for item in s.itens:
-        mat = item.material
-        qtd = Decimal(item.qtd or 0)
-        mat.saldo_atual = Decimal(mat.saldo_atual or 0) - qtd
+        material = item.material
+        quantidade = Decimal(item.qtd or 0)
+
+        material.saldo_atual = (
+            Decimal(material.saldo_atual or 0) - quantidade
+        )
 
     s.status = "ENTREGUE"
     s.data_entrega = datetime.utcnow()
     s.entregue_por_id = current_user.id
 
     db.session.commit()
-    flash("Solicitação entregue e estoque baixado com sucesso.", "success")
-    return redirect(url_for("estoque.solicitacao_detalhe", id=id))
+
+    flash(
+        "Solicitação entregue e estoque baixado com sucesso.",
+        "success"
+    )
+    return redirect(
+        url_for("estoque.solicitacao_detalhe", id=id)
+    )
+
+
 
 
 from sqlalchemy import func
@@ -340,13 +375,13 @@ def solicitacoes_pendentes_qtd():
     })
 # ------------------------- entradas -------------------------
 @estoque_bp.get("/entradas")
-@role_required("ALMOXARIFE", "ENGENHEIRO", "ADMIN", "registrar_entrada_nf")
+@role_required("ALMOXARIFE", "ENGENHEIRO")
 def entradas_lista():
     entradas = Entrada.query.order_by(Entrada.id.desc()).all()
     return render_template("estoque/entradas_lista.html", entradas=entradas)
 
 @estoque_bp.get("/entradas/nova")
-@role_required("ALMOXARIFE", "ENGENHEIRO", "ADMIN", "registrar_entrada_nf")
+@role_required("ALMOXARIFE", "ENGENHEIRO")
 def entrada_nova():
     ent = Entrada(status="RASCUNHO", registrado_por_id=current_user.id)
     db.session.add(ent)
@@ -354,7 +389,7 @@ def entrada_nova():
     return redirect(url_for("estoque.entrada_editar", entrada_id=ent.id))
 
 @estoque_bp.route("/entradas/<int:entrada_id>", methods=["GET", "POST"])
-@role_required("ALMOXARIFE", "ENGENHEIRO", "ADMIN", "registrar_entrada_nf")
+@role_required("ALMOXARIFE", "ENGENHEIRO")
 def entrada_editar(entrada_id):
     ent = Entrada.query.get_or_404(entrada_id)
     materiais = Material.query.filter_by(ativo=True).order_by(Material.nome.asc()).all()
@@ -408,7 +443,7 @@ def entrada_editar(entrada_id):
     return redirect(url_for("estoque.entrada_editar", entrada_id=ent.id))
 
 @estoque_bp.post("/entradas/<int:entrada_id>/concluir")
-@role_required("ADMIN, ENGENHEIR, ALMOXARIFE, concluir_entrada")
+@role_required("ENGENHEIRO", "ALMOXARIFE")
 def entrada_concluir(entrada_id):
     ent = Entrada.query.get_or_404(entrada_id)
     if ent.status == "CONCLUIDA":
@@ -429,7 +464,7 @@ def entrada_concluir(entrada_id):
     return redirect(url_for("estoque.entradas_lista"))
 
 @estoque_bp.post("/entradas/<int:entrada_id>/excluir")
-@role_required("ADMIN", "ALMOXARIFE", "ENGENHEIRO")
+@role_required("ALMOXARIFE", "ENGENHEIRO")
 def entrada_excluir(entrada_id):
     entrada = Entrada.query.get_or_404(entrada_id)
 
@@ -558,8 +593,11 @@ def buscar_material_inteligente(codigo, nome, unidade):
 
     return novo
 
-@estoque_bp.route("/entradas/<int:entrada_id>/importar_xml", methods=["POST"])
-@role_required("registrar_entrada_nf")
+@estoque_bp.route("/entradas/<int:entrada_id>/importar_xml",
+    methods=["POST"]
+)
+@login_required
+@role_required("ALMOXARIFE", "ENGENHEIRO")
 def entrada_importar_xml(entrada_id):
     ent = Entrada.query.get_or_404(entrada_id)
     arq = request.files.get("xml")
