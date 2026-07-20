@@ -357,9 +357,6 @@ def solicitacao_entregar(id):
         url_for("estoque.solicitacao_detalhe", id=id)
     )
 
-
-
-
 from sqlalchemy import func
 
 @estoque_bp.get("/solicitacoes/pendentes/qtd")
@@ -485,7 +482,8 @@ def entrada_excluir(entrada_id):
 
 # ------------------------- fornecedores -------------------------
 @estoque_bp.get("/fornecedores")
-@role_required("ver_fornecedores")
+@login_required
+@role_required("ALMOXARIFE", "ENGENHEIRO")
 def fornecedores_lista():
     q = (request.args.get("q") or "").strip()
     base_q = Fornecedor.query.filter_by(ativo=True)
@@ -496,7 +494,8 @@ def fornecedores_lista():
     return render_template("estoque/fornecedores.html", fornecedores=fornecedores, q=q)
 
 @estoque_bp.post("/fornecedores/novo")
-@role_required("cadastrar_fornecedor")
+@login_required
+@role_required("ALMOXARIFE", "ENGENHEIRO")
 def fornecedor_novo():
     documento = _clean_doc(request.form.get("documento") or "")
     nome = (request.form.get("nome") or "").strip()
@@ -677,6 +676,7 @@ def categorias_lista():
 
 @estoque_bp.route("/categorias/nova", methods=["GET", "POST"])
 @login_required
+@role_required("ALMOXARIFE")
 def categoria_nova():
 
     if request.method == "POST":
