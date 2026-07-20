@@ -1,23 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="d-flex align-items-center justify-content-between mb-3">
   <h4 class="mb-0">Materiais</h4>
+
   <form method="get" class="row g-2 mt-3">
 
     <div class="col-md-6">
-      <input type="text"
-            name="busca"
-            class="form-control"
-            placeholder="Buscar por descrição ou código..."
-            value="{{ busca }}">
+      <input
+        type="text"
+        name="busca"
+        class="form-control"
+        placeholder="Buscar por descrição ou código..."
+        value="{{ busca }}"
+      >
     </div>
 
     <div class="col-md-4">
       <select name="categoria_id" class="form-select">
         <option value="">Todas as categorias</option>
+
         {% for c in categorias %}
-          <option value="{{ c.id }}"
-            {% if categoria_id == c.id|string %}selected{% endif %}>
+          <option
+            value="{{ c.id }}"
+            {% if categoria_id == c.id|string %}selected{% endif %}
+          >
             {{ c.nome }}
           </option>
         {% endfor %}
@@ -29,12 +36,18 @@
     </div>
 
   </form>
-  <a class="btn btn-primary" href="{{ url_for('estoque.material_novo') }}">Novo Material</a>
+
+  {% if current_user.role in ["ADMIN", "ALMOXARIFE", "ENGENHEIRO"] %}
+    <a
+      class="btn btn-primary"
+      href="{{ url_for('estoque.material_novo') }}"
+    >
+      Novo Material
+    </a>
+  {% endif %}
 </div>
 
-<div class="card shadow-sm">
-      
-  <div class="card shadow-sm mt-3">
+<div class="card shadow-sm mt-3">
   <div class="card-body">
 
     <table class="table table-hover align-middle">
@@ -45,7 +58,10 @@
           <th>Categoria</th>
           <th>Unid</th>
           <th>Saldo</th>
-          <th class="text-end">Ações</th>
+
+          {% if current_user.role in ["ADMIN", "ALMOXARIFE", "ENGENHEIRO"] %}
+            <th class="text-end">Ações</th>
+          {% endif %}
         </tr>
       </thead>
 
@@ -53,13 +69,15 @@
         {% for m in materiais %}
         <tr>
 
-          <td><strong>{{ m.codigo }}</strong></td>
+          <td>
+            <strong>{{ m.codigo }}</strong>
+          </td>
 
           <td>{{ m.nome }}</td>
 
           <td>
             <span class="badge bg-primary">
-              {{ m.categoria.nome }}
+              {{ m.categoria.nome if m.categoria else "-" }}
             </span>
           </td>
 
@@ -77,18 +95,42 @@
             {% endif %}
           </td>
 
+          {% if current_user.role in ["ADMIN", "ALMOXARIFE", "ENGENHEIRO"] %}
           <td class="text-end">
-            <a class="btn btn-sm btn-outline-secondary"
-               href="{{ url_for('estoque.material_editar', id=m.id) }}">
-               Editar
+
+            <a
+              class="btn btn-sm btn-outline-secondary"
+              href="{{ url_for('estoque.material_editar', id=m.id) }}"
+            >
+              Editar
             </a>
 
-            <a class="btn btn-sm btn-outline-danger"
-               href="{{ url_for('estoque.material_inativar', id=m.id) }}">
-               Inativar
-            </a>
+            <form
+              method="POST"
+              action="{{ url_for('estoque.material_inativar', id=m.id) }}"
+              class="d-inline"
+            >
+              <button
+                type="submit"
+                class="btn btn-sm btn-outline-danger"
+                onclick="return confirm('Deseja realmente inativar este material?')"
+              >
+                Inativar
+              </button>
+            </form>
+
           </td>
+          {% endif %}
 
+        </tr>
+        {% else %}
+        <tr>
+          <td
+            colspan="{% if current_user.role in ['ADMIN', 'ALMOXARIFE', 'ENGENHEIRO'] %}6{% else %}5{% endif %}"
+            class="text-center text-muted py-4"
+          >
+            Nenhum material encontrado.
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -96,6 +138,5 @@
 
   </div>
 </div>
-  </div>
-</div>
+
 {% endblock %}
