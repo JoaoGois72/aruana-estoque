@@ -150,6 +150,61 @@ def dashboard():
     )
 
 # ------------------------- solicitações -------------------------
+def atualizar_status_solicitacao(solicitacao):
+    itens = list(solicitacao.itens)
+
+    if not itens:
+        solicitacao.status = "PENDENTE"
+        return
+
+    total = len(itens)
+
+    pendentes = sum(
+        1 for item in itens
+        if item.status == "PENDENTE"
+    )
+
+    aprovados = sum(
+        1 for item in itens
+        if item.status == "APROVADO"
+    )
+
+    rejeitados = sum(
+        1 for item in itens
+        if item.status == "REJEITADO"
+    )
+
+    entregues = sum(
+        1 for item in itens
+        if item.status == "ENTREGUE"
+    )
+
+    if pendentes == total:
+        solicitacao.status = "PENDENTE"
+
+    elif rejeitados == total:
+        solicitacao.status = "REJEITADA"
+
+    elif aprovados == total:
+        solicitacao.status = "APROVADA"
+
+    elif entregues == total:
+        solicitacao.status = "ENTREGUE"
+
+    elif entregues > 0:
+        solicitacao.status = "ENTREGUE_PARCIAL"
+
+    elif aprovados > 0 and rejeitados > 0:
+        solicitacao.status = "APROVADA_PARCIAL"
+
+    elif aprovados > 0 and pendentes > 0:
+        solicitacao.status = "ANALISE_PARCIAL"
+
+    elif rejeitados > 0 and pendentes > 0:
+        solicitacao.status = "ANALISE_PARCIAL"
+
+    else:
+        solicitacao.status = "PENDENTE"
 @estoque_bp.route("/solicitacoes")
 @login_required
 def solicitacoes_lista():
@@ -174,7 +229,145 @@ def solicitacoes_lista():
         status=status
     )
 
+@estoque_bp.route(
+    "/solicitacoes/<int:id>/analisar-itens",
+    methods=["POST"]
+)
+@login_required
+@role_required("ENGENHEIRO", "ALMOXARIFE", "AUX_ALMOX")
+def solicitacao_analisar_itens(id):
+    solicitacao = Solicitacao.query.options(
+        joinedload(Solicitacao.itens)
+        .joinedload(SolicitacaoItem.material)
+    ).get_or_404(id)
 
+    if solicitacao.status in [
+        "ENTREGUE",
+        "ENTREGUE_PARCIAL"
+    ]:
+        flash(
+            "Não é possível alterar uma solicitação já entregue.",
+            "warning"
+        )
+        return redirect(
+            url_for(
+                "estoque.solicitacao_detalhe",
+                id=id
+            )
+        )
+
+    try:
+        houve_alteracao = False
+
+        for item in solicitacao.itens:
+            decisao = request.form.get(
+                f"decisao_{item.id}"
+            )
+
+            if not decisao or decisao == "MANTER":
+                continue
+
+            if decisao == "APROVAR":
+                qtd_texto = request.form.get(
+                    f"qtd_aprovada_{item.id}",
+                    str(item.qtd)
+                )
+
+                qtd_aprovada = Decimal(
+                    str(qtd_texto).replace(",", ".")
+                )
+
+                qtd_solicitada = Decimal(
+                    item.qtd or 0
+                )
+
+                if qtd_aprovada <= 0:
+                    raise ValueError(
+                        f"Quantidade inválida para "
+                        f"{item.material.nome}."
+                    )
+
+                if qtd_aprovada > qtd_solicitada:
+                    raise ValueError(
+                        f"A quantidade aprovada de "
+                        f"{item.material.nome} não pode "
+                        f"ultrapassar a solicitada."
+                    )
+
+                item.status = "APROVADO"
+                item.qtd_aprovada = qtd_aprovada
+                item.motivo_rejeicao = None
+                houve_alteracao = True
+
+            elif decisao == "REJEITAR":
+                motivo = (
+                    request.form.get(
+                        f"motivo_{item.id}"
+                    )
+                    or ""
+                ).strip()
+
+                if not motivo:
+                    raise ValueError(
+                        f"Informe o motivo da rejeição de "
+                        f"{item.material.nome}."
+                    )
+
+                item.status = "REJEITADO"
+                item.qtd_aprovada = Decimal("0")
+                item.motivo_rejeicao = motivo
+                houve_alteracao = True
+
+            else:
+                raise ValueError(
+                    "Decisão inválida."
+                )
+
+            item.analisado_por_id = current_user.id
+            item.data_analise = datetime.utcnow()
+
+        if not houve_alteracao:
+            flash(
+                "Nenhum item foi selecionado para análise.",
+                "warning"
+            )
+            return redirect(
+                url_for(
+                    "estoque.solicitacao_detalhe",
+                    id=id
+                )
+            )
+
+        atualizar_status_solicitacao(solicitacao)
+
+        if solicitacao.status in [
+            "APROVADA",
+            "APROVADA_PARCIAL"
+        ]:
+            solicitacao.data_aprovacao = datetime.utcnow()
+            solicitacao.aprovado_por_id = current_user.id
+
+        db.session.commit()
+
+        flash(
+            "Análise dos itens salva com sucesso.",
+            "success"
+        )
+
+    except ValueError as erro:
+        db.session.rollback()
+        flash(str(erro), "danger")
+
+    except Exception:
+        db.session.rollback()
+        raise
+
+    return redirect(
+        url_for(
+            "estoque.solicitacao_detalhe",
+            id=id
+        )
+    )
 @estoque_bp.route("/solicitacoes/nova", methods=["GET", "POST"])
 @login_required
 def solicitacao_nova():
@@ -218,7 +411,8 @@ def solicitacao_nova():
             # 🔹 adiciona item
             item = SolicitacaoItem(
                 material_id=material_id,
-                qtd=qtd
+                qtd=qtd,
+                status="PENDENTE"
             )
 
             s.itens.append(item)
