@@ -32,6 +32,7 @@ ROLE_PERMS = {
     "ALMOXARIFE": [
         "ver_estoque",
         "gerenciar_materiais",
+        "aprovar_solicitacao",
         "entregar_solicitacao",
         "ver_fornecedores",
         "cadastrar_fornecedor",
@@ -39,12 +40,13 @@ ROLE_PERMS = {
 
     "AUX_ALMOX": [
         "ver_estoque",
+        "aprovar_solicitacao",
         "entregar_solicitacao",
     ],
 }
 
-def tem_permissao(permissao):
 
+def tem_permissao(permissao):
     role = current_user.role
 
     if role not in ROLE_PERMS:
@@ -54,6 +56,7 @@ def tem_permissao(permissao):
         return True
 
     return permissao in ROLE_PERMS[role]
+
 
 def perm_required(permissao):
     def decorator(fn):
@@ -67,5 +70,7 @@ def perm_required(permissao):
                 abort(403)
 
             return fn(*args, **kwargs)
+
         return wrapper
+
     return decorator
