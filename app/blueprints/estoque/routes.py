@@ -4,7 +4,7 @@ from app.models.user import User
 from decimal import Decimal, InvalidOperation
 import re
 import xml.etree.ElementTree as ET
-from app.services.solicitacao_service import criar_solicitacao
+
 from flask import render_template, request, redirect, url_for, flash, current_app
 from flask_login import current_user, login_required
 from flask import jsonify
