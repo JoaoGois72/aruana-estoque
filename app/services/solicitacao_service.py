@@ -11,7 +11,15 @@ from app.extensions import db
 from app.models.material import Material
 from app.models.solicitacao import Solicitacao
 from app.models.solicitacao_item import SolicitacaoItem
+print(
+    "SOLICITACAO ITEM ARQUIVO:",
+    SolicitacaoItem.__module__
+)
 
+print(
+    "SOLICITACAO ITEM CAMPOS:",
+    list(SolicitacaoItem.__table__.columns.keys())
+)
 
 STATUS_SOLICITACAO_PENDENTE = "PENDENTE"
 STATUS_SOLICITACAO_ANALISE_PARCIAL = "ANALISE_PARCIAL"
