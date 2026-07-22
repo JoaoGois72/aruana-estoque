@@ -337,16 +337,47 @@ def solicitacao_nova():
 @estoque_bp.route("/solicitacoes/<int:id>")
 @login_required
 def solicitacao_detalhe(id):
-    s = Solicitacao.query.options(
-        joinedload(Solicitacao.itens).joinedload(SolicitacaoItem.material)
-    ).get_or_404(id)
+    try:
+        solicitacao = solicitacao_service.obter_solicitacao(id)
 
-    if current_user.role not in ["ADMIN", "ENGENHEIRO", "ALMOXARIFE", "AUX_ALMOX"] and s.usuario_id != current_user.id:
-        flash("Você não tem acesso a esta solicitação.", "danger")
-        return redirect(url_for("estoque.solicitacoes_lista"))
-    usuario = User.query.get(s.usuario_id) if s.usuario_id else None
-    
-    return render_template("estoque/solicitacao_detalhe.html", solicitacao=s, usuario_solicitante=usuario)
+        perfis_com_acesso_total = {
+            "ADMIN",
+            "ENGENHEIRO",
+            "ALMOXARIFE",
+            "AUX_ALMOX",
+        }
+
+        if (
+            current_user.role not in perfis_com_acesso_total
+            and solicitacao.usuario_id != current_user.id
+        ):
+            flash(
+                "Você não tem acesso a esta solicitação.",
+                "danger",
+            )
+            return redirect(
+                url_for("estoque.solicitacoes_lista")
+            )
+
+        return render_template(
+            "estoque/solicitacao_detalhe.html",
+            solicitacao=solicitacao,
+            usuario_solicitante=solicitacao.usuario,
+        )
+
+    except Exception as erro:
+        db.session.rollback()
+
+        current_app.logger.exception(
+            "Erro ao abrir detalhe da solicitação %s",
+            id,
+        )
+
+        return (
+            f"Erro ao abrir solicitação: "
+            f"{type(erro).__name__}: {erro}",
+            500,
+        )
     
 @estoque_bp.route(
     "/solicitacoes/<int:id>/aprovar",
