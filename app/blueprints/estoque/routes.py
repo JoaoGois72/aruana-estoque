@@ -269,26 +269,36 @@ def solicitacao_nova():
             )
 
         except ValueError as erro:
+            db.session.rollback()
+
+            current_app.logger.warning(
+                "Validação ao criar solicitação: %s",
+                erro,
+            )
+
             flash(str(erro), "warning")
 
             return redirect(
                 url_for("estoque.solicitacao_nova")
             )
 
-        except Exception:
+        except Exception as erro:
+            db.session.rollback()
+
             current_app.logger.exception(
                 "Erro inesperado ao criar solicitação"
             )
 
             flash(
-                "Não foi possível salvar a solicitação. "
-                "Verifique os dados e tente novamente.",
-                "danger"
+                f"Erro ao salvar solicitação: "
+                f"{type(erro).__name__}: {erro}",
+                "danger",
             )
 
             return redirect(
                 url_for("estoque.solicitacao_nova")
             )
+            
 
     materiais = (
         Material.query
