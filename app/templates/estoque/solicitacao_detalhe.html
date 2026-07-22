@@ -518,7 +518,202 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
+  </div>
 
+  <!-- HISTÓRICO / TIMELINE -->
+  <div class="card shadow-sm border-0 mt-4">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <strong>Histórico da solicitação</strong>
+
+      <span class="badge bg-secondary">
+        {{ historico|length if historico else 0 }} evento(s)
+      </span>
+    </div>
+
+    <div class="card-body">
+
+      {% if historico %}
+
+        <div class="timeline-solicitacao">
+
+          {% for evento in historico %}
+
+            <div class="timeline-item">
+
+              <div class="timeline-marker">
+
+                {% if evento.acao == "CRIACAO" %}
+
+                  <span class="badge rounded-pill bg-secondary">
+                    +
+                  </span>
+
+                {% elif evento.acao == "ITEM_APROVADO" %}
+
+                  <span class="badge rounded-pill bg-success">
+                    ✓
+                  </span>
+
+                {% elif evento.acao == "ITEM_REJEITADO" %}
+
+                  <span class="badge rounded-pill bg-danger">
+                    ×
+                  </span>
+
+                {% elif evento.acao == "ANALISE" %}
+
+                  <span class="badge rounded-pill bg-info text-dark">
+                    ✓
+                  </span>
+
+                {% elif evento.acao in ["ITEM_ENTREGUE", "ENTREGA"] %}
+
+                  <span class="badge rounded-pill bg-primary">
+                    ✓
+                  </span>
+
+                {% else %}
+
+                  <span class="badge rounded-pill bg-dark">
+                    i
+                  </span>
+
+                {% endif %}
+
+              </div>
+
+              <div class="timeline-content">
+
+                <div class="d-flex flex-wrap justify-content-between gap-2">
+
+                  <strong>
+                    {{ evento.acao.replace("_", " ").title() }}
+                  </strong>
+
+                  <small class="text-muted">
+                    {{
+                      evento.data_evento.strftime("%d/%m/%Y %H:%M")
+                      if evento.data_evento
+                      else "-"
+                    }}
+                  </small>
+
+                </div>
+
+                <p class="mb-2 mt-2">
+                  {{ evento.descricao }}
+                </p>
+
+                <div class="d-flex flex-wrap gap-3">
+
+                  <small class="text-muted">
+                    <strong>Responsável:</strong>
+                    {{
+                      evento.usuario.nome
+                      if evento.usuario
+                      else "Sistema"
+                    }}
+                  </small>
+
+                  {% if evento.item and evento.item.material %}
+
+                    <small class="text-muted">
+                      <strong>Material:</strong>
+                      {{ evento.item.material.nome }}
+                    </small>
+
+                  {% endif %}
+
+                </div>
+
+              </div>
+
+            </div>
+
+          {% endfor %}
+
+        </div>
+
+      {% else %}
+
+        <div class="text-center text-muted py-4">
+          Esta solicitação ainda não possui histórico registrado.
+        </div>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+.timeline-solicitacao {
+  position: relative;
+  margin-left: 8px;
+}
+
+.timeline-solicitacao::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 15px;
+  width: 2px;
+  background-color: #dee2e6;
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  padding-bottom: 24px;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-marker {
+  position: relative;
+  z-index: 2;
+  min-width: 32px;
+  background-color: #fff;
+  text-align: center;
+}
+
+.timeline-marker .badge {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.timeline-content {
+  flex: 1;
+  padding: 12px 14px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
+
+@media (max-width: 576px) {
+  .timeline-content {
+    padding: 10px;
+  }
+
+  .timeline-item {
+    gap: 10px;
+  }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
 {% endblock %}
    
  
