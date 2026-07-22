@@ -197,9 +197,11 @@ def criar_solicitacao(
             item = SolicitacaoItem(
                 material_id=material.id,
                 qtd=quantidade,
-                status=STATUS_ITEM_PENDENTE,
             )
-
+            
+            if hasattr(item, "status"):
+                item.status = STATUS_ITEM_PENDENTE
+            
             solicitacao.itens.append(item)
             materiais_adicionados += 1
 
