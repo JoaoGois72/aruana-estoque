@@ -178,6 +178,29 @@ def solicitacoes_lista():
         solicitacoes=solicitacoes,
         status=status
     )
+
+@estoque_bp.get("/solicitacoes/pendentes/qtd")
+@login_required
+def solicitacoes_pendentes_qtd():
+    perfis_permitidos = {
+        "ADMIN",
+        "ALMOXARIFE",
+        "AUX_ALMOX",
+    }
+
+    if current_user.role not in perfis_permitidos:
+        return jsonify({"total": 0})
+
+    total = (
+        Solicitacao.query
+        .filter(Solicitacao.status == "PENDENTE")
+        .count()
+    )
+
+    return jsonify({
+        "total": total
+    })
+
 @estoque_bp.route(
     "/solicitacoes/<int:id>/analisar-itens",
     methods=["POST"]
