@@ -102,6 +102,13 @@ class Solicitacao(db.Model):
         lazy="selectin"
     )
 
+    historico = db.relationship(
+        "SolicitacaoHistorico",
+        back_populates="solicitacao",
+        cascade="all, delete-orphan",
+        order_by="SolicitacaoHistorico.data_evento.asc()",
+        lazy="selectin",
+    )
     @property
     def pode_ser_analisada(self):
         return self.status in {
