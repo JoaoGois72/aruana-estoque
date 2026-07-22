@@ -1,5 +1,7 @@
 import app.services.solicitacao_service as solicitacao_service
 from datetime import datetime
+from flask import send_file
+import app.services.relatorio_solicitacoes_service as relatorio_solicitacoes_service
 from app.models.user import User
 from decimal import Decimal, InvalidOperation
 import re
@@ -1064,3 +1066,148 @@ def materiais_buscar():
             for m in materiais
         ]
     })
+
+@estoque_bp.get("/relatorios/solicitacoes")
+@login_required
+def relatorio_solicitacoes():
+    filtros = {
+        "status": request.args.get("status", ""),
+        "usuario_id": request.args.get("usuario_id", ""),
+        "torre": request.args.get("torre", ""),
+        "pavimento": request.args.get("pavimento", ""),
+        "apartamento": request.args.get("apartamento", ""),
+        "material_id": request.args.get("material_id", ""),
+        "data_inicial": request.args.get("data_inicial", ""),
+        "data_final": request.args.get("data_final", ""),
+    }
+
+    try:
+        solicitacoes = (
+            relatorio_solicitacoes_service
+            .listar_solicitacoes(
+                filtros,
+                current_user,
+            )
+        )
+
+    except ValueError as erro:
+        flash(str(erro), "warning")
+        solicitacoes = []
+
+    usuarios = (
+        User.query
+        .filter_by(ativo=True)
+        .order_by(User.nome.asc())
+        .all()
+    )
+
+    materiais = (
+        Material.query
+        .filter_by(ativo=True)
+        .order_by(Material.nome.asc())
+        .all()
+    )
+
+    return render_template(
+        "estoque/relatorio_solicitacoes.html",
+        solicitacoes=solicitacoes,
+        filtros=filtros,
+        usuarios=usuarios,
+        materiais=materiais,
+        status_disponiveis=(
+            relatorio_solicitacoes_service
+            .STATUS_SOLICITACOES
+        ),
+    )
+
+@estoque_bp.get(
+    "/relatorios/solicitacoes/excel"
+)
+@login_required
+def relatorio_solicitacoes_excel():
+    filtros = request.args.to_dict()
+
+    try:
+        solicitacoes = (
+            relatorio_solicitacoes_service
+            .listar_solicitacoes(
+                filtros,
+                current_user,
+            )
+        )
+
+        arquivo = (
+            relatorio_solicitacoes_service
+            .gerar_excel_solicitacoes(
+                solicitacoes
+            )
+        )
+
+    except ValueError as erro:
+        flash(str(erro), "warning")
+
+        return redirect(
+            url_for(
+                "estoque.relatorio_solicitacoes"
+            )
+        )
+
+    nome = (
+        "relatorio_solicitacoes_"
+        f"{datetime.now():%Y%m%d_%H%M}.xlsx"
+    )
+
+    return send_file(
+        arquivo,
+        as_attachment=True,
+        download_name=nome,
+        mimetype=(
+            "application/vnd.openxmlformats-"
+            "officedocument.spreadsheetml.sheet"
+        ),
+    )
+
+@estoque_bp.get(
+    "/relatorios/solicitacoes/pdf"
+)
+@login_required
+def relatorio_solicitacoes_pdf():
+    filtros = request.args.to_dict()
+
+    try:
+        solicitacoes = (
+            relatorio_solicitacoes_service
+            .listar_solicitacoes(
+                filtros,
+                current_user,
+            )
+        )
+
+        arquivo = (
+            relatorio_solicitacoes_service
+            .gerar_pdf_solicitacoes(
+                solicitacoes,
+                filtros,
+            )
+        )
+
+    except ValueError as erro:
+        flash(str(erro), "warning")
+
+        return redirect(
+            url_for(
+                "estoque.relatorio_solicitacoes"
+            )
+        )
+
+    nome = (
+        "relatorio_solicitacoes_"
+        f"{datetime.now():%Y%m%d_%H%M}.pdf"
+    )
+
+    return send_file(
+        arquivo,
+        as_attachment=True,
+        download_name=nome,
+        mimetype="application/pdf",
+    )
