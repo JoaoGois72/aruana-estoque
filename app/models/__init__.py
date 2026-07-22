@@ -6,7 +6,7 @@ from .entrada import Entrada
 from .entrada_item import EntradaItem
 from .fornecedor import Fornecedor
 from .departamento import Departamento
-from .user import User  # MUITO IMPORTANTE
+from .user import User
 
 __all__ = [
     "Material",
@@ -16,5 +16,6 @@ __all__ = [
     "Entrada",
     "EntradaItem",
     "Fornecedor",
-    "User"
+    "Departamento",
+    "User",
 ]
