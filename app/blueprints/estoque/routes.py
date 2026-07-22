@@ -79,7 +79,31 @@ def gerar_codigo_material():
     ultimo = db.session.query(func.max(Material.id)).scalar()
     proximo = (ultimo or 0) + 1
     return str(proximo)
+from sqlalchemy import text
+from app.extensions import db
 
+@estoque_bp.route("/atualizar-banco")
+def atualizar_banco():
+
+    comandos = [
+
+        "ALTER TABLE solicitacao_item ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'PENDENTE'",
+
+        "ALTER TABLE solicitacao_item ADD COLUMN IF NOT EXISTS qtd_aprovada NUMERIC(12,2)",
+
+        "ALTER TABLE solicitacao_item ADD COLUMN IF NOT EXISTS motivo_rejeicao TEXT",
+
+        "ALTER TABLE solicitacao_item ADD COLUMN IF NOT EXISTS analisado_por_id INTEGER",
+
+        "ALTER TABLE solicitacao_item ADD COLUMN IF NOT EXISTS data_analise TIMESTAMP"
+    ]
+
+    for sql in comandos:
+        db.session.execute(text(sql))
+
+    db.session.commit()
+
+    return "Banco atualizado com sucesso!"
 # ------------------------- dashboard -------------------------
 from sqlalchemy import func
 from datetime import datetime
