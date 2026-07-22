@@ -11,6 +11,9 @@ from app.extensions import db
 from app.models.material import Material
 from app.models.solicitacao import Solicitacao
 from app.models.solicitacao_item import SolicitacaoItem
+from app.services.solicitacao_historico_service import (
+    registrar_evento,
+)
 
 STATUS_SOLICITACAO_PENDENTE = "PENDENTE"
 STATUS_SOLICITACAO_ANALISE_PARCIAL = "ANALISE_PARCIAL"
@@ -141,7 +144,7 @@ def criar_solicitacao(
         local_apto=local_apto,
         status=STATUS_SOLICITACAO_PENDENTE,
     )
-
+    
     db.session.add(solicitacao)
 
     materiais_adicionados = 0
@@ -212,7 +215,15 @@ def criar_solicitacao(
             raise ValueError(
                 "Nenhum item válido foi incluído."
             )
-
+        registrar_evento(
+            solicitacao=solicitacao,
+            usuario_id=usuario_id,
+            acao="CRIACAO",
+            descricao=(
+                f"Solicitação criada com "
+                f"{materiais_adicionados} item(ns)."
+            ),
+        )
         db.session.commit()
         return solicitacao
 
