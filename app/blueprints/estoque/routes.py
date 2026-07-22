@@ -241,7 +241,7 @@ def solicitacao_nova():
 
     if request.method == "POST":
         try:
-            criar_solicitacao(
+            solicitacao_service.criar_solicitacao(
                 usuario_id=current_user.id,
                 observacao=(
                     request.form.get("observacao") or ""
@@ -261,7 +261,7 @@ def solicitacao_nova():
 
             flash(
                 "Solicitação criada com sucesso!",
-                "success"
+                "success",
             )
 
             return redirect(
@@ -298,7 +298,6 @@ def solicitacao_nova():
             return redirect(
                 url_for("estoque.solicitacao_nova")
             )
-            
 
     materiais = (
         Material.query
@@ -309,7 +308,7 @@ def solicitacao_nova():
 
     return render_template(
         "estoque/solicitacao_form.html",
-        materiais=materiais
+        materiais=materiais,
     )
   
 @estoque_bp.route("/solicitacoes/<int:id>")
