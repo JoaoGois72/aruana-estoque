@@ -301,7 +301,7 @@ def montar_linhas_relatorio(solicitacoes):
             })
 
     return linhas
-  def gerar_excel_solicitacoes(solicitacoes):
+def gerar_excel_solicitacoes(solicitacoes):
     linhas = montar_linhas_relatorio(solicitacoes)
 
     workbook = Workbook()
