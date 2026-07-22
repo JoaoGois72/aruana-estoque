@@ -293,7 +293,17 @@ def analisar_itens(
                 item.status = STATUS_ITEM_APROVADO
                 item.qtd_aprovada = quantidade
                 item.motivo_rejeicao = None
-
+                registrar_evento(
+                    solicitacao=solicitacao,
+                    item=item,
+                    usuario_id=usuario_id,
+                    acao="ITEM_APROVADO",
+                    descricao=(
+                        f"Material {item.material.nome} aprovado. "
+                        f"Quantidade solicitada: {item.qtd}. "
+                        f"Quantidade aprovada: {quantidade}."
+                    ),
+                )
             elif decisao == "REJEITAR":
                 motivo = (
                     dados.get("motivo")
@@ -309,7 +319,16 @@ def analisar_itens(
                 item.status = STATUS_ITEM_REJEITADO
                 item.qtd_aprovada = Decimal("0")
                 item.motivo_rejeicao = motivo
-
+                registrar_evento(
+                    solicitacao=solicitacao,
+                    item=item,
+                    usuario_id=usuario_id,
+                    acao="ITEM_REJEITADO",
+                    descricao=(
+                        f"Material {item.material.nome} rejeitado. "
+                        f"Motivo: {motivo}."
+                    ),
+                )
             else:
                 raise ValueError(
                     f"Decisão inválida para "
@@ -326,7 +345,15 @@ def analisar_itens(
             )
 
         status = recalcular_status(solicitacao)
-
+        registrar_evento(
+            solicitacao=solicitacao,
+            usuario_id=usuario_id,
+            acao="ANALISE",
+            descricao=(
+                f"Análise concluída. "
+                f"Novo status da solicitação: {status}."
+            ),
+        )
         if status in {
             STATUS_SOLICITACAO_APROVADA,
             STATUS_SOLICITACAO_APROVADA_PARCIAL,
@@ -446,11 +473,30 @@ def entregar_itens_aprovados(
             )
 
             item.status = STATUS_ITEM_ENTREGUE
-
+            registrar_evento(
+                solicitacao=solicitacao,
+                item=item,
+                usuario_id=usuario_id,
+                acao="ITEM_ENTREGUE",
+                descricao=(
+                    f"Material {item.material.nome} entregue. "
+                    f"Quantidade: {quantidade} "
+                    f"{item.material.unidade or ''}."
+                ),
+            )
         solicitacao.entregue_por_id = usuario_id
         solicitacao.data_entrega = datetime.utcnow()
 
         recalcular_status(solicitacao)
+        registrar_evento(
+            solicitacao=solicitacao,
+            usuario_id=usuario_id,
+            acao="ENTREGA",
+            descricao=(
+                f"Entrega processada. "
+                f"Novo status: {solicitacao.status}."
+            ),
+        )
 
         db.session.commit()
         return solicitacao
