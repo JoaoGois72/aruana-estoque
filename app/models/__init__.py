@@ -7,7 +7,7 @@ from .entrada_item import EntradaItem
 from .fornecedor import Fornecedor
 from .departamento import Departamento
 from .user import User
-
+from .solicitacao_historico import SolicitacaoHistorico
 __all__ = [
     "Material",
     "Categoria",
