@@ -1,6 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
 
+<h4>Solicitação #{{ solicitacao.id }}</h4>
+
+<p><strong>Solicitado por:</strong> {{ usuario_solicitante.nome if usuario_solicitante else "Não informado" }}<p>
+<p><strong>Status:</strong> {{ solicitacao.status }}</p>
+<p><strong>Local:</strong> {{ solicitacao.local_torre or "" }} {{ solicitacao.local_pav or "" }} {{ solicitacao.local_apto or "" }}</p>
+<p><strong>Observação:</strong> {{ solicitacao.observacao or "-" }}</p>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Material</th>
+      <th>Qtd</th>
+      <th>Unidade</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in solicitacao.itens %}
+    <tr>
+      <td>{{ item.material.nome if item.material else "" }}</td>
+      <td>{{ item.qtd }}</td>
+      <td>{{ item.material.unidade if item.material else "" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="mt-3"> 
+  {% if solicitacao.status == "PENDENTE" and current_user.role in ["ADMIN", "ENGENHEIRO","ALMOXARIFE","AUX_ALMOX"] %}
+    <form method="post" action="{{ url_for('estoque.solicitacao_aprovar', id=solicitacao.id) }}" style="display:inline-block;">
+      <button class="btn btn-success">Aprovar</button>
+    </form>
+
+    <form method="post" action="{{ url_for('estoque.solicitacao_rejeitar', id=solicitacao.id) }}" style="display:inline-block;">
+      <button class="btn btn-danger">Rejeitar</button>
+    </form>
+  {% endif %}
 <div class="container-fluid py-3">
 
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -33,39 +69,25 @@
           <strong>Status:</strong><br>
 
           {% if solicitacao.status == "PENDENTE" %}
-            <span class="badge bg-warning text-dark">
-              Pendente
-            </span>
+            <span class="badge bg-warning text-dark">Pendente</span>
 
           {% elif solicitacao.status == "ANALISE_PARCIAL" %}
-            <span class="badge bg-info text-dark">
-              Análise parcial
-            </span>
+            <span class="badge bg-info text-dark">Análise parcial</span>
 
           {% elif solicitacao.status == "APROVADA" %}
-            <span class="badge bg-success">
-              Aprovada
-            </span>
+            <span class="badge bg-success">Aprovada</span>
 
           {% elif solicitacao.status == "APROVADA_PARCIAL" %}
-            <span class="badge bg-success">
-              Aprovada parcialmente
-            </span>
+            <span class="badge bg-success">Aprovada parcialmente</span>
 
           {% elif solicitacao.status == "REJEITADA" %}
-            <span class="badge bg-danger">
-              Rejeitada
-            </span>
+            <span class="badge bg-danger">Rejeitada</span>
 
           {% elif solicitacao.status == "ENTREGUE" %}
-            <span class="badge bg-primary">
-              Entregue
-            </span>
+            <span class="badge bg-primary">Entregue</span>
 
           {% elif solicitacao.status == "ENTREGUE_PARCIAL" %}
-            <span class="badge bg-primary">
-              Entregue parcialmente
-            </span>
+            <span class="badge bg-primary">Entregue parcialmente</span>
 
           {% else %}
             <span class="badge bg-secondary">
@@ -76,7 +98,6 @@
 
         <div class="col-md-3">
           <strong>Local:</strong><br>
-
           {{ solicitacao.local_torre or "" }}
           {{ solicitacao.local_pav or "" }}
           {{ solicitacao.local_apto or "" }}
@@ -109,28 +130,14 @@
     ]
   %}
 
-  {% set finalizada =
+  {% set bloqueada =
     solicitacao.status in [
       "ENTREGUE",
-      "REJEITADA"
+      "ENTREGUE_PARCIAL"
     ]
   %}
 
-  {% set possui_item_pendente =
-    solicitacao.itens
-    | selectattr("status", "equalto", "PENDENTE")
-    | list
-    | length > 0
-  %}
-
-  {% set possui_item_aprovado =
-    solicitacao.itens
-    | selectattr("status", "equalto", "APROVADO")
-    | list
-    | length > 0
-  %}
-
-  {% if pode_analisar and not finalizada %}
+  {% if pode_analisar and not bloqueada %}
 
   <form
     method="post"
@@ -141,15 +148,13 @@
   >
 
     <div class="card shadow-sm border-0">
-
       <div class="card-header bg-white">
-        <strong>Análise individual dos itens</strong>
+        <strong>Análise dos itens</strong>
       </div>
 
       <div class="card-body p-0">
 
         <div class="table-responsive">
-
           <table class="table table-hover align-middle mb-0">
 
             <thead class="table-light">
@@ -164,9 +169,7 @@
             </thead>
 
             <tbody>
-
               {% for item in solicitacao.itens %}
-
               <tr>
 
                 <td>
@@ -176,7 +179,6 @@
 
                   {% if item.material and item.material.codigo %}
                     <br>
-
                     <small class="text-muted">
                       Código: {{ item.material.codigo }}
                     </small>
@@ -185,42 +187,27 @@
 
                 <td>
                   {{ item.qtd }}
-
                   {{ item.material.unidade if item.material else "" }}
                 </td>
 
                 <td>
-
                   {% if item.status == "APROVADO" %}
-
-                    <span class="badge bg-success">
-                      Aprovado
-                    </span>
+                    <span class="badge bg-success">Aprovado</span>
 
                   {% elif item.status == "REJEITADO" %}
-
-                    <span class="badge bg-danger">
-                      Rejeitado
-                    </span>
+                    <span class="badge bg-danger">Rejeitado</span>
 
                   {% elif item.status == "ENTREGUE" %}
-
-                    <span class="badge bg-primary">
-                      Entregue
-                    </span>
+                    <span class="badge bg-primary">Entregue</span>
 
                   {% else %}
-
                     <span class="badge bg-warning text-dark">
                       Pendente
                     </span>
-
                   {% endif %}
-
                 </td>
 
                 <td>
-
                   {% if item.status == "ENTREGUE" %}
 
                     <span class="text-muted">
@@ -241,18 +228,14 @@
 
                       <option
                         value="APROVAR"
-                        {% if item.status == "APROVADO" %}
-                          selected
-                        {% endif %}
+                        {% if item.status == "APROVADO" %}selected{% endif %}
                       >
                         Aprovar
                       </option>
 
                       <option
                         value="REJEITAR"
-                        {% if item.status == "REJEITADO" %}
-                          selected
-                        {% endif %}
+                        {% if item.status == "REJEITADO" %}selected{% endif %}
                       >
                         Rejeitar
                       </option>
@@ -260,11 +243,9 @@
                     </select>
 
                   {% endif %}
-
                 </td>
 
                 <td>
-
                   {% if item.status == "ENTREGUE" %}
 
                     {{ item.qtd_aprovada or item.qtd }}
@@ -279,19 +260,13 @@
                       step="0.01"
                       min="0.01"
                       max="{{ item.qtd }}"
-                      value="{{
-                        item.qtd_aprovada
-                        if item.qtd_aprovada is not none
-                        else item.qtd
-                      }}"
+                      value="{{ item.qtd_aprovada if item.qtd_aprovada is not none else item.qtd }}"
                     >
 
                   {% endif %}
-
                 </td>
 
                 <td>
-
                   {% if item.status == "ENTREGUE" %}
 
                     {{ item.motivo_rejeicao or "-" }}
@@ -304,34 +279,28 @@
                       id="motivo_{{ item.id }}"
                       class="form-control"
                       value="{{ item.motivo_rejeicao or '' }}"
-                      placeholder="Obrigatório ao rejeitar"
+                      placeholder="Obrigatório para rejeição"
                     >
 
                   {% endif %}
-
                 </td>
 
               </tr>
-
               {% endfor %}
-
             </tbody>
 
           </table>
-
         </div>
 
       </div>
 
       <div class="card-footer bg-white">
-
         <button
           type="submit"
           class="btn btn-primary"
         >
           Salvar análise dos itens
         </button>
-
       </div>
 
     </div>
@@ -341,13 +310,11 @@
   {% else %}
 
   <div class="card shadow-sm border-0">
-
     <div class="card-header bg-white">
       <strong>Itens da solicitação</strong>
     </div>
 
     <div class="table-responsive">
-
       <table class="table table-hover align-middle mb-0">
 
         <thead class="table-light">
@@ -362,25 +329,17 @@
         </thead>
 
         <tbody>
-
           {% for item in solicitacao.itens %}
-
           <tr>
 
             <td>
               {{ item.material.nome if item.material else "-" }}
             </td>
 
-            <td>
-              {{ item.qtd }}
-            </td>
+            <td>{{ item.qtd }}</td>
 
             <td>
-              {{
-                item.qtd_aprovada
-                if item.qtd_aprovada is not none
-                else "-"
-              }}
+              {{ item.qtd_aprovada if item.qtd_aprovada is not none else "-" }}
             </td>
 
             <td>
@@ -388,33 +347,20 @@
             </td>
 
             <td>
-
               {% if item.status == "APROVADO" %}
-
-                <span class="badge bg-success">
-                  Aprovado
-                </span>
+                <span class="badge bg-success">Aprovado</span>
 
               {% elif item.status == "REJEITADO" %}
-
-                <span class="badge bg-danger">
-                  Rejeitado
-                </span>
+                <span class="badge bg-danger">Rejeitado</span>
 
               {% elif item.status == "ENTREGUE" %}
-
-                <span class="badge bg-primary">
-                  Entregue
-                </span>
+                <span class="badge bg-primary">Entregue</span>
 
               {% else %}
-
                 <span class="badge bg-warning text-dark">
                   Pendente
                 </span>
-
               {% endif %}
-
             </td>
 
             <td>
@@ -422,102 +368,67 @@
             </td>
 
           </tr>
-
           {% endfor %}
-
         </tbody>
 
       </table>
-
     </div>
-
   </div>
 
+  {% if solicitacao.status == "APROVADA" and current_user.role in ["ADMIN", "ALMOXARIFE","AUX_ALMOX"] %}
+    <form method="post" action="{{ url_for('estoque.solicitacao_entregar', id=solicitacao.id) }}" style="display:inline-block;">
+      <button class="btn btn-primary">Entregar</button>
+    </form>
   {% endif %}
 
-  <div class="mt-3">
+  <div class="mt-3 d-flex flex-wrap gap-2">
 
-    {% if pode_analisar and possui_item_pendente %}
+    {% if solicitacao.status == "PENDENTE"
+          and pode_analisar %}
 
-      <div class="card shadow-sm border-0 mb-3">
+      <form
+        method="post"
+        action="{{ url_for(
+          'estoque.solicitacao_aprovar',
+          id=solicitacao.id
+        ) }}"
+      >
+        <button
+          type="submit"
+          class="btn btn-success"
+          onclick="return confirm(
+            'Deseja aprovar todos os itens pendentes desta solicitação?'
+          )"
+        >
+          Aprovar todos
+        </button>
+      </form>
 
-        <div class="card-header bg-white">
-          <strong>Ações em todos os itens pendentes</strong>
-        </div>
-
-        <div class="card-body">
-
-          <div class="row g-3">
-
-            <div class="col-md-4">
-
-              <form
-                method="post"
-                action="{{ url_for(
-                  'estoque.solicitacao_aprovar',
-                  id=solicitacao.id
-                ) }}"
-              >
-
-                <button
-                  type="submit"
-                  class="btn btn-success w-100"
-                  onclick="return confirm(
-                    'Deseja aprovar todos os itens pendentes?'
-                  )"
-                >
-                  Aprovar todos os pendentes
-                </button>
-
-              </form>
-
-            </div>
-
-            <div class="col-md-8">
-
-              <form
-                method="post"
-                action="{{ url_for(
-                  'estoque.solicitacao_rejeitar',
-                  id=solicitacao.id
-                ) }}"
-              >
-
-                <div class="input-group">
-
-                  <input
-                    type="text"
-                    name="motivo_rejeicao"
-                    class="form-control"
-                    placeholder="Informe o motivo para rejeitar todos"
-                    required
-                  >
-
-                  <button
-                    type="submit"
-                    class="btn btn-danger"
-                    onclick="return confirm(
-                      'Deseja rejeitar todos os itens pendentes?'
-                    )"
-                  >
-                    Rejeitar todos
-                  </button>
-
-                </div>
-
-              </form>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
+      <form
+        method="post"
+        action="{{ url_for(
+          'estoque.solicitacao_rejeitar',
+          id=solicitacao.id
+        ) }}"
+      >
+        <button
+          type="submit"
+          class="btn btn-danger"
+          onclick="return confirm(
+            'Deseja rejeitar todos os itens pendentes desta solicitação?'
+          )"
+        >
+          Rejeitar todos
+        </button>
+      </form>
 
     {% endif %}
 
-    {% if pode_entregar and possui_item_aprovado %}
+    {% if solicitacao.status in [
+          "APROVADA",
+          "APROVADA_PARCIAL"
+        ]
+        and pode_entregar %}
 
       <form
         method="post"
@@ -526,7 +437,6 @@
           id=solicitacao.id
         ) }}"
       >
-
         <button
           type="submit"
           class="btn btn-primary"
@@ -536,7 +446,6 @@
         >
           Entregar itens aprovados
         </button>
-
       </form>
 
     {% endif %}
@@ -548,62 +457,49 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-  document
-    .querySelectorAll(".decisao-item")
-    .forEach(function (select) {
+  document.querySelectorAll(".decisao-item").forEach(function (select) {
 
-      const itemId = select.dataset.itemId;
+    const itemId = select.dataset.itemId;
+    const qtdInput = document.getElementById("qtd_" + itemId);
+    const motivoInput = document.getElementById("motivo_" + itemId);
 
-      const qtdInput =
-        document.getElementById("qtd_" + itemId);
+    function atualizarCampos() {
 
-      const motivoInput =
-        document.getElementById("motivo_" + itemId);
-
-      function atualizarCampos() {
-
-        if (!qtdInput || !motivoInput) {
-          return;
-        }
-
-        if (select.value === "REJEITAR") {
-
-          qtdInput.disabled = true;
-          qtdInput.required = false;
-
-          motivoInput.disabled = false;
-          motivoInput.required = true;
-
-        } else if (select.value === "APROVAR") {
-
-          qtdInput.disabled = false;
-          qtdInput.required = true;
-
-          motivoInput.disabled = true;
-          motivoInput.required = false;
-          motivoInput.value = "";
-
-        } else {
-
-          qtdInput.disabled = false;
-          qtdInput.required = false;
-
-          motivoInput.disabled = false;
-          motivoInput.required = false;
-
-        }
+      if (!qtdInput || !motivoInput) {
+        return;
       }
 
-      select.addEventListener(
-        "change",
-        atualizarCampos
-      );
+      if (select.value === "REJEITAR") {
 
-      atualizarCampos();
-    });
+        qtdInput.disabled = true;
+        qtdInput.required = false;
+
+        motivoInput.disabled = false;
+        motivoInput.required = true;
+
+      } else if (select.value === "APROVAR") {
+
+        qtdInput.disabled = false;
+        qtdInput.required = true;
+
+        motivoInput.disabled = true;
+        motivoInput.required = false;
+        motivoInput.value = "";
+
+      } else {
+
+        qtdInput.disabled = false;
+        qtdInput.required = false;
+
+        motivoInput.disabled = false;
+        motivoInput.required = false;
+      }
+    }
+
+    select.addEventListener("change", atualizarCampos);
+
+    atualizarCampos();
+  });
 
 });
 </script>
-
-{% endblock %}
-    
