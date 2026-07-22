@@ -3,8 +3,8 @@ from app.models.user import User
 from decimal import Decimal, InvalidOperation
 import re
 import xml.etree.ElementTree as ET
-
-from flask import render_template, request, redirect, url_for, flash
+from app.services.solicitacao_service import criar_solicitacao
+from flask import render_template, request, redirect, url_for, flash, current_ap
 from flask_login import current_user, login_required
 from flask import jsonify
 
@@ -371,66 +371,74 @@ def solicitacao_analisar_itens(id):
             id=id
         )
     )
+
 @estoque_bp.route("/solicitacoes/nova", methods=["GET", "POST"])
 @login_required
 def solicitacao_nova():
 
     if request.method == "POST":
-
-        # 🔹 cria a solicitação
-        s = Solicitacao(
-            usuario_id=current_user.id,
-            observacao=request.form.get("observacao"),
-            local_torre=request.form.get("local_torre"),
-            local_pav=request.form.get("local_pav"),
-            local_apto=request.form.get("local_apto"),
-        )
-
-        db.session.add(s)
-
-        # 🔥 PEGAR LISTAS DO FORM
-        materiais_ids = request.form.getlist("material_id[]")
-        qtds = request.form.getlist("qtd[]")
-
-        from decimal import Decimal
-
-        # 🔥 AQUI ENTRA SUA VALIDAÇÃO
-        for i in range(len(materiais_ids)):
-
-            material_id = int(materiais_ids[i])
-            qtd = Decimal(qtds[i] or "0")
-
-            material = Material.query.get(material_id)
-
-            # 🚨 VALIDAÇÃO DE ESTOQUE
-            if qtd > material.saldo_atual:
-                flash(f"Quantidade maior que o saldo para o material: {material.nome}", "danger")
-                return redirect(url_for("estoque.solicitacao_nova"))
-
-            if qtd <= 0:
-                flash("Quantidade inválida.", "warning")
-                return redirect(url_for("estoque.solicitacao_nova"))
-
-            # 🔹 adiciona item
-            item = SolicitacaoItem(
-                material_id=material_id,
-                qtd=qtd,
-                status="PENDENTE"
+        try:
+            criar_solicitacao(
+                usuario_id=current_user.id,
+                observacao=(
+                    request.form.get("observacao") or ""
+                ).strip(),
+                local_torre=(
+                    request.form.get("local_torre") or ""
+                ).strip(),
+                local_pav=(
+                    request.form.get("local_pav") or ""
+                ).strip(),
+                local_apto=(
+                    request.form.get("local_apto") or ""
+                ).strip(),
+                materiais_ids=request.form.getlist("material_id[]"),
+                quantidades=request.form.getlist("qtd[]"),
             )
 
-            s.itens.append(item)
+            flash(
+                "Solicitação criada com sucesso!",
+                "success"
+            )
 
-        db.session.commit()
+            return redirect(
+                url_for("estoque.solicitacoes_lista")
+            )
 
-        flash("Solicitação criada com sucesso!", "success")
-        return redirect(url_for("estoque.solicitacoes_lista"))
+        except ValueError as erro:
+            flash(str(erro), "warning")
 
-    # GET
-    materiais = Material.query.filter_by(ativo=True).order_by(Material.nome).all()
+            return redirect(
+                url_for("estoque.solicitacao_nova")
+            )
 
-    return render_template("estoque/solicitacao_form.html", materiais=materiais)
+        except Exception:
+            current_app.logger.exception(
+                "Erro inesperado ao criar solicitação"
+            )
 
+            flash(
+                "Não foi possível salvar a solicitação. "
+                "Verifique os dados e tente novamente.",
+                "danger"
+            )
 
+            return redirect(
+                url_for("estoque.solicitacao_nova")
+            )
+
+    materiais = (
+        Material.query
+        .filter_by(ativo=True)
+        .order_by(Material.nome.asc())
+        .all()
+    )
+
+    return render_template(
+        "estoque/solicitacao_form.html",
+        materiais=materiais
+    )
+  
 @estoque_bp.route("/solicitacoes/<int:id>")
 @login_required
 def solicitacao_detalhe(id):
