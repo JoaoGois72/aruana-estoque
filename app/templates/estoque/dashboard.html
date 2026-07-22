@@ -1,92 +1,335 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h4 class="mb-3">📊 Dashboard da Obra</h4>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="mb-1">Dashboard Gerencial</h3>
+    <p class="text-muted mb-0">
+      Visão geral do estoque e das solicitações
+    </p>
+  </div>
 
-<div class="row g-3">
+  <a
+    href="{{ url_for('estoque.solicitacao_nova') }}"
+    class="btn btn-primary"
+  >
+    Nova solicitação
+  </a>
+</div>
 
-  <!-- TOTAL -->
-  <div class="col-md-4">
-    <div class="card shadow-sm p-3 text-center">
-      <h6>Total de Materiais</h6>
-      <h2>{{ total_materiais }}</h2>
+<div class="row g-3 mb-4">
+
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <small class="text-muted">Materiais ativos</small>
+        <h2 class="mt-2 mb-0">{{ total_materiais }}</h2>
+      </div>
     </div>
   </div>
 
-  <!-- CRÍTICOS -->
-  <div class="col-md-4">
-    <div class="card shadow-sm p-3 text-center bg-danger text-white">
-      <h6>Materiais Críticos</h6>
-      <h2>{{ total_criticos }}</h2>
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0 h-100 border-start border-danger border-4">
+      <div class="card-body">
+        <small class="text-muted">Estoque crítico</small>
+        <h2 class="mt-2 mb-0 text-danger">
+          {{ total_criticos }}
+        </h2>
+      </div>
     </div>
   </div>
 
-  <!-- OK -->
-  <div class="col-md-4">
-    <div class="card shadow-sm p-3 text-center bg-success text-white">
-      <h6>Materiais OK</h6>
-      <h2>{{ total_materiais - total_criticos }}</h2>
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0 h-100 border-start border-warning border-4">
+      <div class="card-body">
+        <small class="text-muted">Solicitações pendentes</small>
+        <h2 class="mt-2 mb-0 text-warning">
+          {{ total_pendentes }}
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0 h-100 border-start border-primary border-4">
+      <div class="card-body">
+        <small class="text-muted">Entregues</small>
+        <h2 class="mt-2 mb-0 text-primary">
+          {{ total_entregues }}
+        </h2>
+      </div>
     </div>
   </div>
 
 </div>
 
-<hr>
+<div class="row g-3 mb-4">
 
-<!-- 📊 GRÁFICO -->
-<div class="card p-3 shadow-sm mt-3">
-  <h6>Consumo por Categoria</h6>
-  <canvas id="graficoCategoria"></canvas>
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <small class="text-muted">Em análise parcial</small>
+        <h3 class="mt-2 mb-0">{{ total_analise_parcial }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <small class="text-muted">Aprovadas</small>
+        <h3 class="mt-2 mb-0 text-success">
+          {{ total_aprovadas }}
+        </h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <small class="text-muted">Aprovadas parcialmente</small>
+        <h3 class="mt-2 mb-0 text-success">
+          {{ total_aprovadas_parcial }}
+        </h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <small class="text-muted">Rejeitadas</small>
+        <h3 class="mt-2 mb-0 text-danger">
+          {{ total_rejeitadas }}
+        </h3>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<hr>
+<div class="row g-3 mb-4">
 
-<!-- 🏆 TOP -->
-<div class="card p-3 shadow-sm mt-3">
-  <h6>Top Materiais Consumidos</h6>
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white">
+        <strong>Solicitações por status</strong>
+      </div>
+      <div class="card-body">
+        <canvas id="graficoStatus"></canvas>
+      </div>
+    </div>
+  </div>
 
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Material</th>
-        <th>Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for m in top_materiais %}
-      <tr>
-        <td>{{ m[0] }}</td>
-        <td>{{ "%.2f"|format(m[1]) }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white">
+        <strong>Top 5 materiais solicitados</strong>
+      </div>
+      <div class="card-body">
+        <canvas id="graficoMateriais"></canvas>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<hr>
+<div class="row g-3 mb-4">
 
-<!-- 🔴 CRÍTICOS -->
-<div class="card p-3 shadow-sm mt-3">
-  <h6>Materiais em Falta</h6>
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white">
+        <strong>Consumo por categoria</strong>
+      </div>
+      <div class="card-body">
+        <canvas id="graficoCategorias"></canvas>
+      </div>
+    </div>
+  </div>
 
-  <table class="table table-danger">
-    <thead>
-      <tr>
-        <th>Material</th>
-        <th>Saldo</th>
-        <th>Mínimo</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for m in materiais_criticos %}
-      <tr>
-        <td>{{ m.nome }}</td>
-        <td>{{ m.saldo_atual }}</td>
-        <td>{{ m.estoque_minimo }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+
+      <div class="card-header bg-white d-flex justify-content-between">
+        <strong>Materiais em estoque crítico</strong>
+
+        <a
+          href="{{ url_for('estoque.materiais') }}"
+          class="btn btn-sm btn-outline-secondary"
+        >
+          Ver materiais
+        </a>
+      </div>
+
+      <div class="table-responsive">
+
+        <table class="table table-hover align-middle mb-0">
+
+          <thead class="table-light">
+            <tr>
+              <th>Material</th>
+              <th>Saldo</th>
+              <th>Mínimo</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            {% for material in materiais_criticos %}
+              <tr>
+                <td>
+                  {{ material.nome }}
+                </td>
+
+                <td>
+                  <span class="badge bg-danger">
+                    {{ material.saldo_atual }}
+                  </span>
+                </td>
+
+                <td>
+                  {{ material.estoque_minimo }}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="3" class="text-center text-muted py-4">
+                  Nenhum material em situação crítica.
+                </td>
+              </tr>
+            {% endfor %}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="card shadow-sm border-0">
+
+  <div class="card-header bg-white d-flex justify-content-between">
+    <strong>Últimas solicitações</strong>
+
+    <a
+      href="{{ url_for('estoque.solicitacoes_lista') }}"
+      class="btn btn-sm btn-outline-primary"
+    >
+      Ver todas
+    </a>
+  </div>
+
+  <div class="table-responsive">
+
+    <table class="table table-hover align-middle mb-0">
+
+      <thead class="table-light">
+        <tr>
+          <th>Nº</th>
+          <th>Solicitante</th>
+          <th>Local</th>
+          <th>Status</th>
+          <th>Data</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {% for solicitacao in ultimas_solicitacoes %}
+
+          <tr>
+
+            <td>
+              #{{ solicitacao.id }}
+            </td>
+
+            <td>
+              {{ solicitacao.usuario.nome if solicitacao.usuario else "-" }}
+            </td>
+
+            <td>
+              {{ solicitacao.local_torre or "" }}
+              {{ solicitacao.local_pav or "" }}
+              {{ solicitacao.local_apto or "" }}
+            </td>
+
+            <td>
+              {% if solicitacao.status == "PENDENTE" %}
+                <span class="badge bg-warning text-dark">
+                  Pendente
+                </span>
+
+              {% elif solicitacao.status == "ANALISE_PARCIAL" %}
+                <span class="badge bg-info text-dark">
+                  Análise parcial
+                </span>
+
+              {% elif solicitacao.status in ["APROVADA", "APROVADA_PARCIAL"] %}
+                <span class="badge bg-success">
+                  {{ solicitacao.status.replace("_", " ").title() }}
+                </span>
+
+              {% elif solicitacao.status in ["ENTREGUE", "ENTREGUE_PARCIAL"] %}
+                <span class="badge bg-primary">
+                  {{ solicitacao.status.replace("_", " ").title() }}
+                </span>
+
+              {% elif solicitacao.status == "REJEITADA" %}
+                <span class="badge bg-danger">
+                  Rejeitada
+                </span>
+
+              {% else %}
+                <span class="badge bg-secondary">
+                  {{ solicitacao.status }}
+                </span>
+              {% endif %}
+            </td>
+
+            <td>
+              {{
+                solicitacao.data_solicitacao.strftime("%d/%m/%Y %H:%M")
+                if solicitacao.data_solicitacao
+                else "-"
+              }}
+            </td>
+
+            <td class="text-end">
+              <a
+                href="{{ url_for(
+                  'estoque.solicitacao_detalhe',
+                  id=solicitacao.id
+                ) }}"
+                class="btn btn-sm btn-outline-primary"
+              >
+                Abrir
+              </a>
+            </td>
+
+          </tr>
+
+        {% else %}
+
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">
+              Nenhuma solicitação encontrada.
+            </td>
+          </tr>
+
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
 </div>
 
 {% endblock %}
@@ -96,18 +339,76 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx = document.getElementById('graficoCategoria');
+const labelsStatus = {{ labels_status | tojson }};
+const valoresStatus = {{ valores_status | tojson }};
 
-new Chart(ctx, {
-    type: 'bar',
+const topMateriaisLabels = {{ top_materiais_labels | tojson }};
+const topMateriaisValores = {{ top_materiais_valores | tojson }};
+
+const categoriasLabels = {{ categorias_labels | tojson }};
+const categoriasValores = {{ categorias_valores | tojson }};
+
+new Chart(
+  document.getElementById("graficoStatus"),
+  {
+    type: "doughnut",
     data: {
-        labels: {{ categorias | tojson }},
-        datasets: [{
-            label: 'Consumo',
-            data: {{ valores_categoria | tojson }},
-        }]
+      labels: labelsStatus,
+      datasets: [{
+        data: valoresStatus
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
     }
-});
+  }
+);
+
+new Chart(
+  document.getElementById("graficoMateriais"),
+  {
+    type: "bar",
+    data: {
+      labels: topMateriaisLabels,
+      datasets: [{
+        label: "Quantidade solicitada",
+        data: topMateriaisValores
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: "y"
+    }
+  }
+);
+
+new Chart(
+  document.getElementById("graficoCategorias"),
+  {
+    type: "bar",
+    data: {
+      labels: categoriasLabels,
+      datasets: [{
+        label: "Quantidade entregue",
+        data: categoriasValores
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  }
+);
 </script>
+
+<style>
+#graficoStatus,
+#graficoMateriais,
+#graficoCategorias {
+  min-height: 310px;
+}
+</style>
 
 {% endblock %}
