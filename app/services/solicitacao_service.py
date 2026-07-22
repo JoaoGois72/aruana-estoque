@@ -4,7 +4,9 @@ from decimal import Decimal, InvalidOperation
 from sqlalchemy.orm import joinedload
 
 from app.extensions import db
-from app.models import Material, Solicitacao, SolicitacaoItem
+from app.models.material import Material
+from app.models.solicitacao import Solicitacao
+from app.models.solicitacao_item import SolicitacaoItem
 
 
 STATUS_SOLICITACAO_PENDENTE = "PENDENTE"
