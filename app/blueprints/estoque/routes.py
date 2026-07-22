@@ -104,53 +104,194 @@ from app.models import Material, EntradaItem, Categoria
 @login_required
 def dashboard():
 
-    # 📦 TOTAL DE MATERIAIS
-    total_materiais = Material.query.filter_by(ativo=True).count()
+    # -----------------------------
+    # MATERIAIS
+    # -----------------------------
+    total_materiais = (
+        Material.query
+        .filter_by(ativo=True)
+        .count()
+    )
 
-    # 🔴 MATERIAIS CRÍTICOS
-    materiais_criticos = Material.query.filter(
-        Material.saldo_atual <= Material.estoque_minimo,
-        Material.ativo == True
-    ).all()
-
-    total_criticos = len(materiais_criticos)
-
-    # 📊 CONSUMO POR CATEGORIA
-    consumo_categoria = (
-        db.session.query(
-            Categoria.nome,
-            func.coalesce(func.sum(EntradaItem.qtd), 0)
+    materiais_criticos = (
+        Material.query
+        .filter(
+            Material.ativo.is_(True),
+            Material.saldo_atual <= Material.estoque_minimo
         )
-        .join(Material, Material.categoria_id == Categoria.id)
-        .outerjoin(EntradaItem, EntradaItem.material_id == Material.id)
-        .group_by(Categoria.nome)
+        .order_by(Material.saldo_atual.asc())
+        .limit(10)
         .all()
     )
 
-    categorias = [c[0] for c in consumo_categoria]
-    valores_categoria = [float(c[1]) for c in consumo_categoria]
+    total_criticos = len(materiais_criticos)
 
-    # 🏆 TOP MATERIAIS
+    # -----------------------------
+    # SOLICITAÇÕES POR STATUS
+    # -----------------------------
+    status_solicitacoes = (
+        db.session.query(
+            Solicitacao.status,
+            func.count(Solicitacao.id)
+        )
+        .group_by(Solicitacao.status)
+        .all()
+    )
+
+    mapa_status = {
+        status: total
+        for status, total in status_solicitacoes
+    }
+
+    total_pendentes = mapa_status.get("PENDENTE", 0)
+    total_analise_parcial = mapa_status.get("ANALISE_PARCIAL", 0)
+    total_aprovadas = mapa_status.get("APROVADA", 0)
+    total_aprovadas_parcial = mapa_status.get("APROVADA_PARCIAL", 0)
+    total_entregues = mapa_status.get("ENTREGUE", 0)
+    total_entregues_parcial = mapa_status.get("ENTREGUE_PARCIAL", 0)
+    total_rejeitadas = mapa_status.get("REJEITADA", 0)
+
+    labels_status = [
+        "Pendentes",
+        "Análise parcial",
+        "Aprovadas",
+        "Aprovadas parcialmente",
+        "Entregues",
+        "Entregues parcialmente",
+        "Rejeitadas",
+    ]
+
+    valores_status = [
+        total_pendentes,
+        total_analise_parcial,
+        total_aprovadas,
+        total_aprovadas_parcial,
+        total_entregues,
+        total_entregues_parcial,
+        total_rejeitadas,
+    ]
+
+    # -----------------------------
+    # TOP MATERIAIS SOLICITADOS
+    # -----------------------------
     top_materiais = (
         db.session.query(
             Material.nome,
-            func.coalesce(func.sum(EntradaItem.qtd), 0).label("total")
+            func.coalesce(
+                func.sum(SolicitacaoItem.qtd),
+                0
+            ).label("total")
         )
-        .outerjoin(EntradaItem, EntradaItem.material_id == Material.id)
-        .group_by(Material.nome)
-        .order_by(func.sum(EntradaItem.qtd).desc())
+        .join(
+            SolicitacaoItem,
+            SolicitacaoItem.material_id == Material.id
+        )
+        .group_by(
+            Material.id,
+            Material.nome
+        )
+        .order_by(
+            func.sum(SolicitacaoItem.qtd).desc()
+        )
         .limit(5)
+        .all()
+    )
+
+    top_materiais_labels = [
+        item[0]
+        for item in top_materiais
+    ]
+
+    top_materiais_valores = [
+        float(item[1] or 0)
+        for item in top_materiais
+    ]
+
+    # -----------------------------
+    # CONSUMO POR CATEGORIA
+    # Somente itens entregues
+    # -----------------------------
+    consumo_categoria = (
+        db.session.query(
+            Categoria.nome,
+            func.coalesce(
+                func.sum(SolicitacaoItem.qtd_aprovada),
+                0
+            ).label("total")
+        )
+        .join(
+            Material,
+            Material.categoria_id == Categoria.id
+        )
+        .join(
+            SolicitacaoItem,
+            SolicitacaoItem.material_id == Material.id
+        )
+        .filter(
+            SolicitacaoItem.status == "ENTREGUE"
+        )
+        .group_by(
+            Categoria.id,
+            Categoria.nome
+        )
+        .order_by(
+            func.sum(
+                SolicitacaoItem.qtd_aprovada
+            ).desc()
+        )
+        .all()
+    )
+
+    categorias_labels = [
+        item[0]
+        for item in consumo_categoria
+    ]
+
+    categorias_valores = [
+        float(item[1] or 0)
+        for item in consumo_categoria
+    ]
+
+    # -----------------------------
+    # ÚLTIMAS SOLICITAÇÕES
+    # -----------------------------
+    ultimas_solicitacoes = (
+        Solicitacao.query
+        .options(
+            joinedload(Solicitacao.usuario)
+        )
+        .order_by(
+            Solicitacao.id.desc()
+        )
+        .limit(8)
         .all()
     )
 
     return render_template(
         "estoque/dashboard.html",
+
         total_materiais=total_materiais,
         total_criticos=total_criticos,
-        categorias=categorias,
-        valores_categoria=valores_categoria,
-        top_materiais=top_materiais,
-        materiais_criticos=materiais_criticos
+
+        total_pendentes=total_pendentes,
+        total_analise_parcial=total_analise_parcial,
+        total_aprovadas=total_aprovadas,
+        total_aprovadas_parcial=total_aprovadas_parcial,
+        total_entregues=total_entregues,
+        total_entregues_parcial=total_entregues_parcial,
+        total_rejeitadas=total_rejeitadas,
+
+        labels_status=labels_status,
+        valores_status=valores_status,
+
+        top_materiais_labels=top_materiais_labels,
+        top_materiais_valores=top_materiais_valores,
+
+        categorias_labels=categorias_labels,
+        categorias_valores=categorias_valores,
+
+        materiais_criticos=materiais_criticos,
+        ultimas_solicitacoes=ultimas_solicitacoes,
     )
 
 # ------------------------- solicitações -------------------------
