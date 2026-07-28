@@ -1048,14 +1048,13 @@ from flask import jsonify, request
 from flask_login import login_required
 from sqlalchemy import or_
 
-@estoque_bp.route("/materiais/<int:id>/inativar", methods=["POST"])
+@estoque_bp.route("/materiais/<int:id>/inativar", methods=["GET", "POST"])
 @login_required
 @role_required("ADMIN", "ALMOXARIFE", "ENGENHEIRO")
 def material_inativar(id):
     material = Material.query.get_or_404(id)
 
     material.ativo = False
-
     db.session.commit()
 
     flash(f"Material '{material.nome}' inativado com sucesso.", "success")
