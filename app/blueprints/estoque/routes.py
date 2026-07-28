@@ -112,7 +112,7 @@ def dashboard():
     # -----------------------------
     # 
     # -----------------------------
-    total_ = (
+    total_materiais = (
         Material.query
         .filter_by(ativo=True)
         .count()
@@ -1048,7 +1048,7 @@ from flask import jsonify, request
 from flask_login import login_required
 from sqlalchemy import or_
 
-@estoque_bp.route("/materiais/<int:id>/inativar", methods=["GET", "POST"])
+@estoque_bp.route("/materiais/<int:id>/inativar", methods=["POST"])
 @login_required
 @role_required("ADMIN", "ALMOXARIFE", "ENGENHEIRO")
 def material_inativar(id):
@@ -1129,7 +1129,7 @@ def relatorio_solicitacoes():
         .all()
     )
 
-     = (
+    materiais = (
         Material.query
         .filter_by(ativo=True)
         .order_by(Material.nome.asc())
@@ -1141,7 +1141,7 @@ def relatorio_solicitacoes():
         solicitacoes=solicitacoes,
         filtros=filtros,
         usuarios=usuarios,
-        =,
+        materiais=materiais,
         status_disponiveis=(
             relatorio_solicitacoes_service
             .STATUS_SOLICITACOES
