@@ -718,18 +718,4 @@ def material_editar(id):
     )
 
 
-# =========================
-# INATIVAR MATERIAL
-# =========================
-@estoque_bp.route("/materiais/<int:id>/inativar")
-@login_required
-def material_inativar(id):
-
-    material = Material.query.get_or_404(id)
-
-    material.ativo = False
-    db.session.commit()
-
-    flash("Material inativado!", "warning")
-    return redirect(url_for("estoque.materiais"))
 
